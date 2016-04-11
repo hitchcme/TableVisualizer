@@ -1,0 +1,10 @@
+# For Unfinished GUI Functions
+#   Remove when finished
+
+# Stuff that either slows operations
+# shouldn't be synced or just causes problems
+*.DS_Store
+*Table 1
+*Table1
+*.*~
+.tmp
