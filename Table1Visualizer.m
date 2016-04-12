@@ -1424,7 +1424,7 @@ function [h,handles] = ApplyLineStyles_v2(TBL,FLINS,h,handles)
 	
 	plt.TickLength = plt.TickLength * 2;
 
-    [plt,lgnd] = FixLgndPos(TBL);
+    %[plt,lgnd] = FixLgndPos(TBL);
     
 	if	sum([strfind(handles.SaImpZoom.Checked,'on');0]) ||...
 		sum([strfind(handles.SaNoZoom.Checked,'on');0]);
@@ -1744,26 +1744,26 @@ function exportimg_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
     if sum([strfind(handles.SaImpZoom.Checked,'on');0]);
-        IMGFILNAM = strcat(char(handles.TABLES.MID),'_Zoomed_Impact_Time.png')
-        IMGFILNAM2 = strcat(char(handles.TABLES.MPATH),char(handles.TABLES.MID),'_Zoomed_Impact_Time.png')
-		IMGFILNAM3 = strcat(char(handles.TABLES.MPATH),char(handles.TABLES.MID),'_Zoomed_Impact_Time.eps')
+        IMGFILNAM = strcat(char(handles.TABLES.MID),'_Zoomed_Impact_Time.png');
+        IMGFILNAM2 = strcat(char(handles.TABLES.MPATH),char(handles.TABLES.MID),'_Zoomed_Impact_Time.png');
+		%IMGFILNAM3 = strcat(char(handles.TABLES.MPATH),char(handles.TABLES.MID),'_Zoomed_Impact_Time.eps');
     elseif sum([strfind(handles.SaNoZoom.Checked,'on');0]);
-        IMGFILNAM = strcat(char(handles.TABLES.MID),'_Pusher_Impact_Whole.png')
-        IMGFILNAM2 = strcat(char(handles.TABLES.MPATH),char(handles.TABLES.MID),'_Pusher_Impact_Whole.png')
-		IMGFILNAM3 = strcat(char(handles.TABLES.MPATH),char(handles.TABLES.MID),'_Pusher_Impact_Whole.eps')
+        IMGFILNAM = strcat(char(handles.TABLES.MID),'_Pusher_Impact_Whole.png');
+        IMGFILNAM2 = strcat(char(handles.TABLES.MPATH),char(handles.TABLES.MID),'_Pusher_Impact_Whole.png');
+		%IMGFILNAM3 = strcat(char(handles.TABLES.MPATH),char(handles.TABLES.MID),'_Pusher_Impact_Whole.eps');
     else
-        IMGFILNAM = strcat(char(handles.TABLES.MID),'.png')
-        IMGFILNAM2 = strcat(char(handles.TABLES.MPATH),char(handles.TABLES.MID),'.png')
-		IMGFILNAM3 = strcat(char(handles.TABLES.MPATH),char(handles.TABLES.MID),'.eps')
+        IMGFILNAM = strcat(char(handles.TABLES.MID),'.png');
+        IMGFILNAM2 = strcat(char(handles.TABLES.MPATH),char(handles.TABLES.MID),'.png');
+		%IMGFILNAM3 = strcat(char(handles.TABLES.MPATH),char(handles.TABLES.MID),'.eps');
     end
-    set(gcf,'paperpositionmode','auto')
-	pause
+    set(gcf,'paperpositionmode','auto');
+    
     try
-        print('-dpng','-r400',IMGFILNAM2)
-		print('-depsc2',IMGFILNAM3);
+        print('-dpng','-r400',IMGFILNAM2);
+		%print('-depsc2',IMGFILNAM3);
     catch e
-        'There was a problem, so I saved it here'
-        IMGFILNAM
+        %'There was a problem, so I saved it here'
+        %IMGFILNAM
         print('-dpng','-r400',IMGFILNAM)
     end
     
@@ -1776,38 +1776,45 @@ function [plt,lgnd] = FixLgndPos(TBL)
 	lgnd.Units = 'normalized';
 	pltxlim = plt.XLim;
 	pltylim = plt.YLim;
-	pltxa = diff(plt.XLim)/(plt.Position(1)+plt.Position(3));
+	pltxa = diff(plt.XLim)/(plt.Position(3));
+    pltya = diff(plt.YLim)/(plt.Position(4))
 	lgndpos = lgnd.Position;
 
-	lgndbndx1 = plt.XLim(2) - (lgndpos(1)*pltxa)-(10/100)*(lgndpos(1)*pltxa);
+	lgndbndx1 = plt.XLim(2) - (lgndpos(1)*pltxa)-(0/100)*(lgndpos(1)*pltxa);
 	lgndbndx2 = lgndbndx1 + (lgndpos(3)*abs(diff(pltxlim)));
 
-	lgndbndy1 = (lgndpos(1)*diff(pltylim))+pltylim(1);
+	lgndbndy1 = plt.YLim(2) - (lgndpos(2)*pltya)-(0/100)*(lgndpos(2)*pltya);
 	lgndbndy2 = lgndbndy1 + (lgndpos(3)*diff(pltylim)) + pltylim(1);
 	lgndbnd = [[lgndbndx1,lgndbndy1];[lgndbndx2,lgndbndy2]];
 	lgndxmp = (lgndbndx2 - lgndbndx1) / 2;
 	lgndymp = (lgndbndy2 - lgndbndy1) / 2;
-	INTERSECT = 	sum(...
-			sum(...
-				TBL.Time >= lgndbnd(1,1) & TBL.Velocity >= lgndbnd(1,2) &...
-				TBL.Time <= lgndbnd(2,1) & TBL.Velocity <= lgndbnd(2,2)));
+    INTERSECT = sum(...
+                sum(...
+                        TBL.Time >= lgndbnd(1,1) & TBL.Velocity >= lgndbnd(1,2) &...
+                        TBL.Time <= lgndbnd(2,1) & TBL.Velocity <= lgndbnd(2,2)))
 
 	while INTERSECT
 		plt.YLim(2) = plt.YLim(2)*1.01;
 		pltxlim = plt.XLim;
 		pltylim = plt.YLim;
-		lgndbndx1 = (lgnd.Position(1)*diff(pltxlim))+pltxlim(1);
-		lgndbndx2 = lgndbndx1 + (lgnd.Position(3)*diff(pltxlim)) + pltxlim(1);
-		lgndbndy1 = (lgnd.Position(2)*diff(pltylim))+pltylim(1);
-		lgndbndy2 = lgndbndy1 + (lgnd.Position(4)*diff(pltylim)) + pltylim(1);
-		lgndbnd = [[lgndbndx1,lgndbndy1];[lgndbndx2,lgndbndy2]];
-		lgndxmp = (lgndbndx2 - lgndbndx1) / 2;
-		lgndymp = (lgndbndy2 - lgndbndy1) / 2;
-		INTERSECT = 	sum(...
-			sum(...
-				TBL.Time >= lgndbnd(1,1) & TBL.Velocity >= lgndbnd(1,2) &...
-				TBL.Time <= lgndbnd(2,1) & TBL.Velocity <= lgndbnd(2,2)));
-	end
+        pltxa = diff(plt.XLim)/(plt.Position(3));
+        pltya = diff(plt.YLim)/(plt.Position(4))
+        lgndpos = lgnd.Position;
+
+        lgndbndx1 = plt.XLim(2) - (lgndpos(1)*pltxa)-(0/100)*(lgndpos(1)*pltxa);
+        lgndbndx2 = lgndbndx1 + (lgndpos(3)*abs(diff(pltxlim)));
+
+        lgndbndy1 = plt.YLim(2) - (lgndpos(2)*pltya)-(0/100)*(lgndpos(2)*pltya);
+        lgndbndy2 = lgndbndy1 + (lgndpos(3)*diff(pltylim)) + pltylim(1);
+        lgndbnd = [[lgndbndx1,lgndbndy1];[lgndbndx2,lgndbndy2]]
+        lgndxmp = (lgndbndx2 - lgndbndx1) / 2;
+        lgndymp = (lgndbndy2 - lgndbndy1) / 2;
+        INTERSECT =  sum(...
+                     sum(...
+                        TBL.Time >= lgndbnd(1,1) & TBL.Velocity >= lgndbnd(1,2) &...
+                        TBL.Time <= lgndbnd(2,1) & TBL.Velocity <= lgndbnd(2,2)));
+        pause
+    end
 
 
     
