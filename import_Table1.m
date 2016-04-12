@@ -484,7 +484,13 @@ function [INTPATH] = build_INTPATHs(DIRDELIM)
 		SRCLOG = RDRSRCLOG(i);
 		FILE = RDRFILE(i);
 		STR = utils.misc.strsplit(char(regexprep(regexprep(regexprep(STR,DWORKDIR,''),'Source.log',''),'[\\\/]','')),'_');
-		
+		if ispc
+            STRwv = char(STR(1));
+            RSPinS = strfind(char(STR(1)),'RDR');
+            STRSIZ = size(char(STR(1)),2);
+            STRwv = STRwv(RSPinS:STRSIZ);
+            STR(1) = cellstr(STRwv);
+        end
 		NEWSTRUCT = struct('FILE',FILE,'SRCLOG',SRCLOG,'ERRLOG',ERRLOG);
 		%INTPATH.RDRX <- The String to go there
 		RDR_entry = char(strcat(STR(1),STR(2)));

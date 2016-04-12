@@ -490,7 +490,13 @@ function [INTPATH] = build_INTPATHs(DIRDELIM)
 		SRCLOG = RDRSRCLOG(i);
 		FILE = RDRFILE(i);
 		STR = utils.misc.strsplit(char(regexprep(regexprep(regexprep(STR,DWORKDIR,''),'Source.log',''),'[\\\/]','')),'_');
-		
+		if ispc
+            STRwv = char(STR(1));
+            RSPinS = strfind(char(STR(1)),'RDR');
+            STRSIZ = size(char(STR(1)),2);
+            STRwv = STRwv(RSPinS:STRSIZ);
+            STR(1) = cellstr(STRwv);
+        end
 		NEWSTRUCT = struct('FILE',FILE,'SRCLOG',SRCLOG,'ERRLOG',ERRLOG);
 		%INTPATH.RDRX <- The String to go there
 		RDR_entry = char(strcat(STR(1),STR(2)));
@@ -542,15 +548,23 @@ function [TABLES] = Check_MIDandMPATH(INTPATH,TABLES,MPATH,MISSION_ID)
 	MPATHM = sum(logical(cell2mat([MPATHM(~cellfun('isempty',MPATHM)),0])));
 	MIDM = strfind(STR,'MID');
 	MIDM = sum(logical(cell2mat([MIDM(~cellfun('isempty',MIDM)),0])));
-		
 	if or(~MIDM,~MPATHM)
-		rmdir(horzcat(INTPATH.DATDIR,'RDR*'),'s');
-		TABLES = struct('MPATH',MPATH,'MID',MISSION_ID)
+        try
+            rmdir(horzcat(INTPATH.DATDIR,'RDR*'),'s');
+        catch e
+            '';
+        end
+            TABLES = struct('MPATH',MPATH,'MID',MISSION_ID);
+
 	else
 		MPATHM = [strfind(TABLES.MID,MISSION_ID),0];
 		MIDM = [strfind(TABLES.MPATH,MPATH),0];
 		if or(~MIDM,~MPATHM)
-			rmdir(horzcat(INTPATH.DATDIR,'RDR*'),'s');
+            try 
+                rmdir(horzcat(INTPATH.DATDIR,'RDR*'),'s');
+            catch e
+                '';
+            end
 			TABLES = struct('MPATH',MPATH,'MID',MISSION_ID);
 		end
 	end
@@ -570,7 +584,7 @@ function IsInCorrMissionDir = Check_MID_with_ParentDir(MISSION_ID,wholepathfilen
 	
 function [MPATH, MISSION_ID,RDRNUM,TYPE,MYRDRFILENAME] = GET_RDR_Info(wholepathfilename)
 	if ispc
-		MRT = utils.misc.strsplit(wholepathfilename,'\');
+		MRT = utils.misc.strsplit(wholepathfilename,'\\');
 		MRT = utils.misc.strsplit(char(regexprep(MRT(size(MRT,2)),'.asc','')),' ');
 	else
 		MRT = utils.misc.strsplit(wholepathfilename,'/');
