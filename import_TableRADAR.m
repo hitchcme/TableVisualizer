@@ -583,15 +583,29 @@ function IsInCorrMissionDir = Check_MID_with_ParentDir(MISSION_ID,wholepathfilen
 	
 	
 function [MPATH, MISSION_ID,RDRNUM,TYPE,MYRDRFILENAME] = GET_RDR_Info(wholepathfilename)
+    
+	wholepathfilename = regexprep(regexprep(regexprep(wholepathfilename,'rdr ','rdr'),'rdr ','rdr'),'rdr ','rdr');
+	wholepathfilename = regexprep(regexprep(regexprep(wholepathfilename,'RDR ','RDR'),'RDR ','RDR'),'RDR ','RDR');
+	wholepathfilename = regexprep(regexprep(regexprep(wholepathfilename,'Rdr ','RDR'),'RDR ','RDR'),'RDR ','RDR');
 	if ispc
-		MRT = utils.misc.strsplit(wholepathfilename,'\\');
-		MRT = utils.misc.strsplit(char(regexprep(MRT(size(MRT,2)),'.asc','')),' ');
-	else
-		MRT = utils.misc.strsplit(wholepathfilename,'/');
-		MRT = utils.misc.strsplit(char(regexprep(MRT(size(MRT,2)),'.asc','')),' ');
-	end
+        MRT = utils.misc.strsplit(wholepathfilename,'\\');
+        MRT = utils.misc.strsplit(char(regexprep(MRT(size(MRT,2)),'.asc','')),' ');
+    else
+        MRT = utils.misc.strsplit(wholepathfilename,'/');
+        MRT = utils.misc.strsplit(char(regexprep(MRT(size(MRT,2)),'.asc','')),' ');
+    end
 	MISSION_ID = MRT(1);
 	RDRNUM = str2double(regexprep(regexprep(MRT(2),'[A-Z]',''),'[a-z]',''));
+	IMPCT = logical(sum(cell2mat(strfind(upper(MRT(3)),'IMPACT'))) > 0);
+	PSHER = logical(sum(cell2mat(strfind(upper(MRT(3)),'PUSHER'))) > 0);
+	DMRT3 = ~or(IMPCT,PSHER);
+	while DMRT3
+        MRT(3) = [];
+        IMPCT = logical(sum(cell2mat(strfind(upper(MRT(3)),'IMPACT'))) > 0);
+        PSHER = logical(sum(cell2mat(strfind(upper(MRT(3)),'PUSHER'))) > 0);
+        DMRT3 = ~or(IMPCT,PSHER);
+	end
+    
 	TYPE = upper(MRT(3));
 	WPFN = wholepathfilename;
 	midpos = strfind(char(WPFN),char(MISSION_ID)); % mission path mission id position
