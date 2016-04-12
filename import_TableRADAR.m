@@ -588,6 +588,13 @@ function [MPATH, MISSION_ID,RDRNUM,TYPE,MYRDRFILENAME] = GET_RDR_Info(wholepathf
 	wholepathfilename = regexprep(regexprep(regexprep(wholepathfilename,'rdr ','rdr'),'rdr ','rdr'),'rdr ','rdr');
 	wholepathfilename = regexprep(regexprep(regexprep(wholepathfilename,'RDR ','RDR'),'RDR ','RDR'),'RDR ','RDR');
 	wholepathfilename = regexprep(regexprep(regexprep(wholepathfilename,'Rdr ','RDR'),'RDR ','RDR'),'RDR ','RDR');
+    wholepathfilename = regexprep(regexprep(regexprep(wholepathfilename,'_RDR','RDR'),'_rdr','RDR'),'_RDR','RDR');
+    wholepathfilename = regexprep(regexprep(regexprep(wholepathfilename,'RDR_','RDR'),'rdr_','RDR'),'RDR_','RDR');
+    % I think 'FOR_PROC' may mean Forward ...something...
+    % since there is a 'PUSH_PROC', 'FOR_PROC' must be IMPACT????
+    wholepathfilename = regexprep(wholepathfilename,'FOR_PROC','IMPACT');
+    wholepathfilename = regexprep(wholepathfilename,'PUSH_PROC','PUSHER');
+    
 	if ispc
         MRT = utils.misc.strsplit(wholepathfilename,'\\');
         MRT = utils.misc.strsplit(char(regexprep(MRT(size(MRT,2)),'.asc','')),' ');
