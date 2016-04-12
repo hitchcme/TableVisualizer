@@ -540,39 +540,42 @@ function Open_RDR_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 	[VALID,TABLES,INTPATH,RFK] = import_TableRADAR;
-	RFK = regexprep(regexprep(RFK,'MPACT','mpact'),'USHER','usher');
-	Reload_Callback(hObject, eventdata, handles);
-	TBLMIs = findall(handles.Tables_menu);
+    try
+        RFK = regexprep(regexprep(RFK,'MPACT','mpact'),'USHER','usher');
+        Reload_Callback(hObject, eventdata, handles);
+        TBLMIs = findall(handles.Tables_menu);
 
-	TMEs1 = handles.Tables_menu.Children;
-	TMEsL1 = {TMEs1.Label};
-	if size(TMEs1,1) > 0
-		TMEsL1 = transpose(TMEsL1);
-	end
-	RMPOS1 = sum(find(ismember(TMEsL1,RFK(1))));
+        TMEs1 = handles.Tables_menu.Children;
+        TMEsL1 = {TMEs1.Label};
+        if size(TMEs1,1) > 0
+            TMEsL1 = transpose(TMEsL1);
+        end
+        RMPOS1 = sum(find(ismember(TMEsL1,RFK(1))));
 	
-	TMEs2 = TMEs1(RMPOS1).Children;
-	TMEsL2 = {TMEs2.Label};
-	if size(TMEs1,1) > 0
-		TMEsL2 = transpose(TMEsL2);
-	end
-	RMPOS2 = sum(find(ismember(TMEsL2,RFK(2))));
+        TMEs2 = TMEs1(RMPOS1).Children;
+        TMEsL2 = {TMEs2.Label};
+        if size(TMEs1,1) > 0
+            TMEsL2 = transpose(TMEsL2);
+        end
+        RMPOS2 = sum(find(ismember(TMEsL2,RFK(2))));
 	
-	TMEs3 = TMEs2(RMPOS2).Children;
-	TMEsL3 = {TMEs3.Label};
-	if size(TMEs2,1) > 0
-		TMEsL3 = transpose(TMEsL3);
-	end
-	RMPOS3 = sum(find(ismember(TMEsL3,RFK(3))));
-	% Turn it off before sending the object to the callback, because it's
-	% going to toggle it.
-	TMEs3(RMPOS3).Checked = 'off';
-	Tables_menu_children_Callback(TMEs3(RMPOS3),eventdata,handles,TABLES);
+        TMEs3 = TMEs2(RMPOS2).Children;
+        TMEsL3 = {TMEs3.Label};
+        if size(TMEs2,1) > 0
+            TMEsL3 = transpose(TMEsL3);
+        end
+        RMPOS3 = sum(find(ismember(TMEsL3,RFK(3))));
+        % Turn it off before sending the object to the callback, because it's
+        % going to toggle it.
+        TMEs3(RMPOS3).Checked = 'off';
+        Tables_menu_children_Callback(TMEs3(RMPOS3),eventdata,handles,TABLES);
 	
-	%updateSources(handles);
-	%updateTables(handles,INTPATH);
-	%Reload_Callback(hObject, eventdata, handles);
-	
+        %updateSources(handles);
+        %updateTables(handles,INTPATH);
+        %Reload_Callback(hObject, eventdata, handles);
+    catch e
+        '';
+    end
 	
 % --------------------------------------------------------------------
 function Open_Callback(hObject, eventdata, handles)

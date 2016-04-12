@@ -1,4 +1,4 @@
-function [VALID,TABLES,INTPATH,RFK] = import_TableRADAR(wholepathfilename)
+function [VALID,TABLES,INTPATH,RFK] = import_TableRADAR(wholepathfilename);
 % This function will grab a Table1, if there is no TABLES.TABLE1, and
 % run import_Table1(), after it finds the Mission Path.
 % if TABLES.TABLE1 is made, then TABLES.RADAR{NUM}.TS will be offset by
@@ -33,6 +33,7 @@ function [VALID,TABLES,INTPATH,RFK] = import_TableRADAR(wholepathfilename)
 			relPOS = [NaN,NaN,NaN];
 			TABLE1_RDR = table(NaN,NaN);
 			TABLE1_RDR.Properties.VariableNames = {'Time' 'Velocity'};
+            RFK = {'','',''};
 			return
 
         end
