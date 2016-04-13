@@ -585,15 +585,25 @@ function IsInCorrMissionDir = Check_MID_with_ParentDir(MISSION_ID,wholepathfilen
 	
 function [MPATH, MISSION_ID,RDRNUM,TYPE,MYRDRFILENAME] = GET_RDR_Info(wholepathfilename)
     
-	wholepathfilename = regexprep(regexprep(regexprep(wholepathfilename,'rdr ','rdr'),'rdr ','rdr'),'rdr ','rdr');
-	wholepathfilename = regexprep(regexprep(regexprep(wholepathfilename,'RDR ','RDR'),'RDR ','RDR'),'RDR ','RDR');
-	wholepathfilename = regexprep(regexprep(regexprep(wholepathfilename,'Rdr ','RDR'),'RDR ','RDR'),'RDR ','RDR');
-    wholepathfilename = regexprep(regexprep(regexprep(wholepathfilename,'_RDR','RDR'),'_rdr','RDR'),'_RDR','RDR');
-    wholepathfilename = regexprep(regexprep(regexprep(wholepathfilename,'RDR_','RDR'),'rdr_','RDR'),'RDR_','RDR');
+    % my swEEEET one-liner. Verified working in windows Part.
+    wholepathfilename = regexprep(wholepathfilename,...
+                                                    {   '[rR][dD][rR]',...
+                                                        '[rR][dD][rR] ',...
+                                                        '[rR][dD][rR]  ',...
+                                                        '[rR][dD][rR]   ',...
+                                                        '[rR][dD][rR]_',...
+                                                        '_[rR][dD][rR]',...
+                                                                            },' RDR');
+    
+    % Found one file with 'Article' instead of 'Impact' and everything is
+    % already setup for 'Impact' way toooo many variables are base on this
+    % to just change right now.
+    wholepathfilename = regexprep(wholepathfilename,'[aA][rR][tT][iI][cC][lL][eE]','IMPACT')
     % I think 'FOR_PROC' may mean Forward ...something...
     % since there is a 'PUSH_PROC', 'FOR_PROC' must be IMPACT????
     wholepathfilename = regexprep(regexprep(wholepathfilename,'FOR_PROC','IMPACT'),'_IMPACT','IMPACT');
     wholepathfilename = regexprep(regexprep(wholepathfilename,'PUSH_PROC','PUSHER'),'_PUSHER','PUSHER');
+    
     
 	if ispc
         MRT = utils.misc.strsplit(wholepathfilename,'\\');
