@@ -598,7 +598,7 @@ function [MPATH, MISSION_ID,RDRNUM,TYPE,MYRDRFILENAME] = GET_RDR_Info(wholepathf
     % Found one file with 'Article' instead of 'Impact' and everything is
     % already setup for 'Impact' way toooo many variables are base on this
     % to just change right now.
-    wholepathfilename = regexprep(wholepathfilename,'[aA][rR][tT][iI][cC][lL][eE]','IMPACT')
+    wholepathfilename = regexprep(wholepathfilename,'[aA][rR][tT][iI][cC][lL][eE]','IMPACT');
     % I think 'FOR_PROC' may mean Forward ...something...
     % since there is a 'PUSH_PROC', 'FOR_PROC' must be IMPACT????
     wholepathfilename = regexprep(regexprep(wholepathfilename,'FOR_PROC','IMPACT'),'_IMPACT','IMPACT');
