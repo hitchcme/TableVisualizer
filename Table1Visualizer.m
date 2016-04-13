@@ -77,8 +77,13 @@ guidata(hObject, handles);
         [VALID,TABLES,INTPATH] =  import_Table1(PATHTOLOCALTABLE1);
     else
         [VALID,TABLES,INTPATH] =  import_Table1;
-	end
-		
+    end
+    fclose('all')
+    
+    if exist(INTPATH.TABLE1.TABLE1,'file') & ~VALID
+        [VALID,TABLES,INTPATH] =  import_Table1;
+    end
+    
     handles = guidata(hObject);
 	handles.INTPATH = INTPATH;
 	handles.TABLES = TABLES;
@@ -540,6 +545,7 @@ function Open_RDR_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 	[VALID,TABLES,INTPATH,RFK] = import_TableRADAR;
+    fclose('all')
     try
         RFK = regexprep(regexprep(RFK,'MPACT','mpact'),'USHER','usher');
         Reload_Callback(hObject, eventdata, handles);
@@ -585,6 +591,13 @@ function Open_Callback(hObject, eventdata, handles)
    
 	%global TABLE1_BWs TABLE1_FBs MISSION_ID VALID
     [VALID,TABLES,INTPATH] = import_Table1;
+    fclose('all');
+    
+    %Just in case we accidently select the wrong file
+    if exist(INTPATH.TABLE1.TABLE1,'file') & ~VALID
+        [VALID,TABLES,INTPATH] =  import_Table1;
+    end
+    
 	MISSION_ID = TABLES.MID;
 	TABLE1_BWs = TABLES.TABLE1.BW;
 	TABLE1_FBs = TABLES.TABLE1.FB;
@@ -951,7 +964,8 @@ function Reload_Callback(hObject, eventdata, handles)
         [VALID,TABLES,INTPATH] = import_Table1(wholepathfilename);
     else
         [VALID,TABLES,INTPATH] = import_Table1;
-	end
+    end
+    fclose('all')
 	MISSION_ID = TABLES.MID;
 	TABLE1_BWs = TABLES.TABLE1.BW;
 	TABLE1_FBs = TABLES.TABLE1.FB;
