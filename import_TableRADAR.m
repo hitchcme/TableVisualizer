@@ -502,8 +502,12 @@ function [INTPATH] = build_INTPATHs(DIRDELIM)
 		%INTPATH.RDRX <- The String to go there
 		RDR_entry = char(strcat(STR(1),STR(2)));
 		%INTPATH.RDRX.IMPACT or INTPATH.RDRX.PUSHER
+        
 		PSHoIMP = char(STR(3));
-		INTPATH.(RDR_entry).(PSHoIMP) = struct('FILE',FILE,'SRCLOG',SRCLOG,'ERRLOG',ERRLOG);
+        %just its in a directory with underscores in its name
+        PSHoIMP = PSHoIMP(strfind(PSHoIMP,'RDR'):size(PSHoIMP,2))
+		
+        INTPATH.(RDR_entry).(PSHoIMP) = struct('FILE',FILE,'SRCLOG',SRCLOG,'ERRLOG',ERRLOG);
 	end
 	INTPATHPATH = horzcat(DWORKDIR,'INTPATH.mat');
 	save(INTPATHPATH,'INTPATH');
