@@ -22,7 +22,7 @@ function varargout = Table1Visualizer(varargin)
 
 % Edit the above text to modify the response to help Table1Visualizer
 
-% Last Modified by GUIDE v2.5 16-Apr-2016 23:37:13
+% Last Modified by GUIDE v2.5 17-Apr-2016 12:19:24
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -620,8 +620,19 @@ function Open_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
    
 	%global TABLE1_BWs TABLE1_FBs MISSION_ID VALID
-    [VALID,TABLES,INTPATH] = import_Table1;
-    fclose('all');
+	INTPATH = utils.files.build_INTPATHs(mfilename,mfilename('fullpath'));
+	load(char(INTPATH.TABLES),'TABLES');
+	STARTPATH = strcat(TABLES.MPATH,'*.txt');
+	
+	[FileName,PathName,FilterIndex] = uigetfile(STARTPATH,'import Table 1');
+	if isstr(FileName)
+		wholepathfilename = char(strcat(PathName,FileName));
+		[VALID,TABLES,INTPATH] = import_Table1(wholepathfilename);
+		fclose('all');
+	end
+	if ~exist('VALID','var')
+		VALID = 1;
+	end
     
     %Just in case we accidently select the wrong file
     if exist(INTPATH.TABLE1.TABLE1,'file') & ~VALID
@@ -1202,7 +1213,7 @@ function FLINS = TBLFunctions_to_LineStyles_v2(TBL,TinT)
 
 	% How many Tables are in TBL
 	if TinT ~= size(TBL.Function,2)
-		TinT = size(TBL.Function,2)
+		TinT = size(TBL.Function,2);
 	end	
 	
 	FUNCTIONS = TBL.Function(1,1:TinT);
@@ -1477,7 +1488,32 @@ function [h,handles] = ApplyLineStyles_v2(TBL,FLINS,h,handles)
 	
 	plt.TickLength = plt.TickLength * 2;
 
-    [plt,lgnd] = FixLgndPos(TBL);
+	plt.YLabel.Units = 'normalized';
+	plt.Units = 'normalized';
+	nnpylp = plt.Position(1)+plt.YLabel.Extent(1)/(1/plt.Position(3));
+	if	nnpylp < 0.4
+		plt.Position(1) = plt.Position(1) - nnpylp + 0.01;
+		nnpylp = plt.Position(1)+plt.YLabel.Extent(1)/(1/plt.Position(3));
+	elseif nnpylp > 0.4
+		plt.Position(1) = plt.Position(1) - nnpylp + 0.51;
+		nnpylp = plt.Position(1)+plt.YLabel.Extent(1)/(1/plt.Position(3));
+	end
+	if plt.Position(3) < 0.5
+		LEFT = plt.Position(1) < 0.5;
+		plt.Position(1);
+		RIGHT = ~LEFT;
+		if LEFT
+			plt.Position(3) = 0.49 - plt.Position(1);
+		elseif RIGHT
+			plt.Position;
+			plt.Position(3) = 0.99 - plt.Position(1);
+		end
+	elseif plt.Position(3) > 0.5
+		plt.Position(1) + plt.Position(3);
+		plt.Position(3) = 0.99 - plt.Position(1);
+	end
+	
+	[plt,lgnd] = FixLgndPos(TBL);
     %editing here
     [plt,lgnd2] = FixLgnd2Pos(TBL,MIVTxtBxStr,MxImp);
 
@@ -1806,11 +1842,12 @@ function [plt,lgnd2] = FixLgnd2Pos(TBL,MIVTxtBxStr,MxImp)
                 lgnd2bxbnds(2,1:2) = EXTENT(1:2) + EXTENT(3:4);
 
                 % 2.) Now What data is inside that box
-                    GTL = TBL.Time >= lgnd2bxbnds(1,1) & TBL.Velocity >= lgnd2bxbnds(1,2);
-                    LTR = TBL.Time <= lgnd2bxbnds(2,1) & TBL.Velocity <= lgnd2bxbnds(2,2);
-                    INSIDE = GTL & LTR;
+                GTL = TBL.Time >= lgnd2bxbnds(1,1) & TBL.Velocity >= lgnd2bxbnds(1,2);
+                LTR = TBL.Time <= lgnd2bxbnds(2,1) & TBL.Velocity <= lgnd2bxbnds(2,2);
+                INSIDE = GTL & LTR;
             
-            end
+			end
+			
             if ~ZOOMED && ~DISPPUSH
                 % Center the Secondary Legend between Impact Time and Where
                 % it currently is.  There should be a data point just
@@ -1823,6 +1860,67 @@ function [plt,lgnd2] = FixLgnd2Pos(TBL,MIVTxtBxStr,MxImp)
                 MPC = (MAXTIM + IMPVELT)/2;
                 LMPC = lgnd2.Extent(1) + (lgnd2.Extent(3)/2);
                 lgnd2.Position(1) = lgnd2.Extent(1) + MPC - LMPC;
+			end
+			    %What Data points are inside the secondary legend boundaries?
+        % 1.) Where are the boundaries?
+            % lower left; upper right
+            % (1,1) time lower left corner
+            % (1,2) velocity lower left corner
+            % (2,1) time upper right corner
+            % (2,2) velocity upper right corner
+            EXTENT = get(lgnd2,'Extent');
+            lgnd2bxbnds(1,1:2) = EXTENT(1:2);
+            lgnd2bxbnds(2,1:2) = EXTENT(1:2) + EXTENT(3:4);
+			
+            % 2.) Now What data is inside that box
+            GTL = TBL.Time >= lgnd2bxbnds(1,1) & TBL.Velocity >= lgnd2bxbnds(1,2);
+            LTR = TBL.Time <= lgnd2bxbnds(2,1) & TBL.Velocity <= lgnd2bxbnds(2,2);
+            INSIDE = GTL & LTR;
+			OUTSIDE = lgnd2.Extent(1) + lgnd2.Extent(3) > plt.XLim(2);
+
+			while sum(sum(INSIDE))>0 && ZOOMED
+				EXTENTwnt = get(lgnd2,'Extent');
+				lgnd2.FontSize = lgnd2.FontSize * 0.8;
+				lgnd.FontSize = lgnd.FontSize * 0.8;				
+				EXTENT = get(lgnd2,'Extent');
+				lgnd2.Position(2) = lgnd2.Position(2) + EXTENTwnt(2)-EXTENT(2);
+				EXTENT = get(lgnd2,'Extent');
+				lgnd2bxbnds(1,1:2) = EXTENT(1:2);
+				lgnd2bxbnds(2,1:2) = EXTENT(1:2) + EXTENT(3:4);
+				GTL = TBL.Time >= lgnd2bxbnds(1,1) & TBL.Velocity >= lgnd2bxbnds(1,2);
+				LTR = TBL.Time <= lgnd2bxbnds(2,1) & TBL.Velocity <= lgnd2bxbnds(2,2);
+				INSIDE = GTL & LTR;
+			end
+			
+			while sum(sum(INSIDE))>0 && ~ZOOMED
+
+				EXTENT = get(lgnd2,'Extent');
+				%Legend Mid Point that we want
+				LMPCwnt = EXTENT(1) + (EXTENT(3)/2);
+				
+				lgnd2.FontSize = lgnd2.FontSize * 0.8;
+				lgnd.FontSize = lgnd.FontSize * 0.8;
+
+				
+				plt.YLim(2) = MAXVEL+abs(diff(plt.YLim))*(3/100);
+				plt.XLim(2) = max(max(TBL.Time)) + abs(diff(plt.XLim))*(3/100);
+				[plt,lgnd] = FixLgndPos(TBL);
+				
+				EXTENT = get(lgnd2,'Extent');
+				%Legend Mid Point that we want
+				LMPCcur = EXTENT(1) + (EXTENT(3)/2);
+				
+				lgnd2.Position(1) = EXTENT(1) + LMPCwnt - LMPCcur;
+	            
+				EXTENT = get(lgnd2,'Extent');
+				lgnd2bxbnds(1,1:2) = EXTENT(1:2);
+		        lgnd2bxbnds(2,1:2) = EXTENT(1:2) + EXTENT(3:4);
+				
+				% 2.) Now What data is inside that box
+				GTL = TBL.Time >= lgnd2bxbnds(1,1) & TBL.Velocity >= lgnd2bxbnds(1,2);
+				LTR = TBL.Time <= lgnd2bxbnds(2,1) & TBL.Velocity <= lgnd2bxbnds(2,2);
+				INSIDE = GTL & LTR;
+				OUTSIDE = lgnd2.Extent(1)+lgnd2.Extent(3) > plt.XLim(2);
             end
             % 3.) What quadrant of secondary legend are those data points
                 %     mostly in?
@@ -1945,3 +2043,18 @@ function dnt_fix_stage_vels_Callback(hObject, eventdata, handles)
 	
 	Reload_Callback(hObject, eventdata, handles);
 	
+
+
+% --------------------------------------------------------------------
+function exit_Callback(hObject, eventdata, handles)
+% hObject    handle to exit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+	%selection = questdlg(['Close ' get(handles.figure1,'Name') '?'],...
+    %                 ['Close ' get(handles.figure1,'Name') '...'],...
+    %                 'Yes','No','Yes');
+	%if strcmp(selection,'No')
+	%	return;
+	%end
+
+	delete(handles.figure1);
