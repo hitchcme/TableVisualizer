@@ -1687,22 +1687,22 @@ function exportimg_Callback(hObject, eventdata, handles)
     catch e
         %'There was a problem, so I saved it here'
         %IMGFILNAM
-        print('-dpng','-r400',IMGFILNAM)
+        print('-dpng','-r400',IMGFILNAM);
     end
     
     
 function [plt,lgnd2] = FixLgnd2Pos(TBL,MIVTxtBxStr,MxImp)
 
     try
-        MAXVEL = sum(max(MxImp.Velocity))/size(max(MxImp.Velocity),2)
-        IMPVEL = sum(min(MxImp.Velocity))/size(min(MxImp.Velocity),2)
-        MAXVELT = sum(min(MxImp.Time))/size(min(MxImp.Time),2)
-        IMPVELT = sum(max(MxImp.Time))/size(max(MxImp.Time),2)
+        MAXVEL = sum(max(MxImp.Velocity))/size(max(MxImp.Velocity),2);
+        IMPVEL = sum(min(MxImp.Velocity))/size(min(MxImp.Velocity),2);
+        MAXVELT = sum(min(MxImp.Time))/size(min(MxImp.Time),2);
+        IMPVELT = sum(max(MxImp.Time))/size(max(MxImp.Time),2);
     catch e
-        MAXVEL = max(MxImp.Velocity)
-        IMPVEL = min(MxImp.Velocity)
-        MAXVELT = min(MxImp.Time)
-        IMPVELT = max(MxImp.Time)
+        MAXVEL = max(MxImp.Velocity);
+        IMPVEL = min(MxImp.Velocity);
+        MAXVELT = min(MxImp.Time);
+        IMPVELT = max(MxImp.Time);
     end
     
     plt = findall(gca,'type','axes');
@@ -1713,8 +1713,8 @@ function [plt,lgnd2] = FixLgnd2Pos(TBL,MIVTxtBxStr,MxImp)
     %initial placement of the secondary legend, based on being zoomed to
     %impact, and displaying Pusher data or not 
     
-    DISPPUSH = sum([cell2mat(strfind(strcat(TBL.Function(1,:)),'PUSHER')),0]) > 0
-    ZOOMED = sum(sum(TBL.Time < plt.XLim(1))) > 0
+    DISPPUSH = sum([cell2mat(strfind(strcat(TBL.Function(1,:)),'PUSHER')),0]) > 0;
+    ZOOMED = sum(sum(TBL.Time < plt.XLim(1))) > 0;
     if ~ZOOMED && DISPPUSH
         lgnd2 = text(IMPVELT,IMPVEL/2,MIVTxtBxStr,	'Units',        'data',...
                                     'FontUnits',    'points',...
@@ -1737,10 +1737,10 @@ function [plt,lgnd2] = FixLgnd2Pos(TBL,MIVTxtBxStr,MxImp)
         % window
             %it will be half below axis and half above the lower axis window
             %limit
-        txtbxos = plt.YLim(1) - lgnd2.Extent(2)
+        txtbxos = plt.YLim(1) - lgnd2.Extent(2);
         % 3% of total x & y Limit spans
-        lgnd2.Position(2) = lgnd2.Position(2) + txtbxos + (abs(diff(plt.YLim)) * (3/100))
-        lgnd2.Position(1) = lgnd2.Position(1) + (abs(diff(plt.XLim)) * (3/100))
+        lgnd2.Position(2) = lgnd2.Position(2) + txtbxos + (abs(diff(plt.YLim)) * (3/100));
+        lgnd2.Position(1) = lgnd2.Position(1) + (abs(diff(plt.XLim)) * (3/100));
     end
     
     
@@ -1761,7 +1761,7 @@ function [plt,lgnd2] = FixLgnd2Pos(TBL,MIVTxtBxStr,MxImp)
             INSIDE = GTL & LTR;
             
             while sum(sum(INSIDE))>0 && ~ZOOMED
-                lgnd2.Position(1) = lgnd2.Position(1) + abs(diff(plt.XLim))*(1/100)
+                lgnd2.Position(1) = lgnd2.Position(1) + abs(diff(plt.XLim))*(1/100);
                 EXTENT = get(lgnd2,'Extent');
                 lgnd2bxbnds(1,1:2) = EXTENT(1:2);
                 lgnd2bxbnds(2,1:2) = EXTENT(1:2) + EXTENT(3:4);
@@ -1776,45 +1776,45 @@ function [plt,lgnd2] = FixLgnd2Pos(TBL,MIVTxtBxStr,MxImp)
                 % Center the Secondary Legend between Impact Time and Where
                 % it currently is.  There should be a data point just
                 % outside the NW corner
-                MPC = (IMPVELT + lgnd2.Extent(1))/2
-                LMPC = lgnd2.Extent(1) + (lgnd2.Extent(3)/2)
-                lgnd2.Position(1) = lgnd2.Extent(1) + MPC - LMPC
+                MPC = (IMPVELT + lgnd2.Extent(1))/2;
+                LMPC = lgnd2.Extent(1) + (lgnd2.Extent(3)/2);
+                lgnd2.Position(1) = lgnd2.Extent(1) + MPC - LMPC;
             elseif ~ZOOMED && DISPPUSH
-                MAXTIM = max(max(TBL.Time))
-                MPC = (MAXTIM + IMPVELT)/2
-                LMPC = lgnd2.Extent(1) + (lgnd2.Extent(3)/2)
-                lgnd2.Position(1) = lgnd2.Extent(1) + MPC - LMPC
+                MAXTIM = max(max(TBL.Time));
+                MPC = (MAXTIM + IMPVELT)/2;
+                LMPC = lgnd2.Extent(1) + (lgnd2.Extent(3)/2);
+                lgnd2.Position(1) = lgnd2.Extent(1) + MPC - LMPC;
             end
             % 3.) What quadrant of secondary legend are those data points
                 %     mostly in?
-            lgnd2tmp = lgnd2bxbnds(1,1) + (lgnd2bxbnds(2,1) - lgnd2bxbnds(1,1))/2;
-            lgnd2vmp = lgnd2bxbnds(1,2) + (lgnd2bxbnds(2,2) - lgnd2bxbnds(1,2))/2;
-            NorthHalf = INSIDE & TBL.Velocity > lgnd2vmp;
-            EastHalf = INSIDE & TBL.Time > lgnd2tmp;
-            WestHalf = INSIDE & ~EastHalf;
-            SouthHalf = INSIDE & ~NorthHalf;
-            NWQuad = INSIDE & WestHalf & NorthHalf;
-            NEQuad = INSIDE & EastHalf & NorthHalf;
-            SEQuad = INSIDE & EastHalf & SouthHalf;
-            SWQuad = INSIDE & WestHalf & SouthHalf;
+            %lgnd2tmp = lgnd2bxbnds(1,1) + (lgnd2bxbnds(2,1) - lgnd2bxbnds(1,1))/2;
+            %lgnd2vmp = lgnd2bxbnds(1,2) + (lgnd2bxbnds(2,2) - lgnd2bxbnds(1,2))/2;
+            %NorthHalf = INSIDE & TBL.Velocity > lgnd2vmp;
+            %EastHalf = INSIDE & TBL.Time > lgnd2tmp;
+            %WestHalf = INSIDE & ~EastHalf;
+            %SouthHalf = INSIDE & ~NorthHalf;
+            %NWQuad = INSIDE & WestHalf & NorthHalf;
+            %NEQuad = INSIDE & EastHalf & NorthHalf;
+            %SEQuad = INSIDE & EastHalf & SouthHalf;
+            %SWQuad = INSIDE & WestHalf & SouthHalf;
             
-            E_N = sum([sum(sum(NorthHalf)),0]);
-            E_NE = sum([sum(sum(NEQuad)),0]);
-            E_E = sum([sum(sum(EastHalf)),0]);
-            E_SE = sum([sum(sum(SEQuad)),0]);
-            E_S = sum([sum(sum(SouthHalf)),0]);
-            E_SW = sum([sum(sum(SWQuad)),0]);
-            E_W = sum([sum(sum(WestHalf)),0]);
-            E_NW = sum([sum(sum(NWQuad)),0]);
+            %E_N = sum([sum(sum(NorthHalf)),0]);
+            %E_NE = sum([sum(sum(NEQuad)),0]);
+            %E_E = sum([sum(sum(EastHalf)),0]);
+            %E_SE = sum([sum(sum(SEQuad)),0]);
+            %E_S = sum([sum(sum(SouthHalf)),0]);
+            %E_SW = sum([sum(sum(SWQuad)),0]);
+            %E_W = sum([sum(sum(WestHalf)),0]);
+            %E_NW = sum([sum(sum(NWQuad)),0]);
             
-            E_N = (E_NW + E_NE)/2;
-            E_E = (E_NE + E_SE)/2;
-            E_S = (E_SE + E_SW)/2;
-            E_W = (E_SW + E_NW)/2;
+            %E_N = (E_NW + E_NE)/2;
+            %E_E = (E_NE + E_SE)/2;
+            %E_S = (E_SE + E_SW)/2;
+            %E_W = (E_SW + E_NW)/2;
             
-            WORSTDIRtMV = [E_N,E_NE,E_E,E_SE,E_S,E_SW,E_W,E_NW]
-            WDtMvind = find(max(max(WORSTDIRtMV)) == WORSTDIRtMV)
-            WORSTDIRtMV(WDtMvind)
+            %WORSTDIRtMV = [E_N,E_NE,E_E,E_SE,E_S,E_SW,E_W,E_NW]
+            %WDtMvind = find(max(max(WORSTDIRtMV)) == WORSTDIRtMV)
+            %WORSTDIRtMV(WDtMvind)
     
 function [plt,lgnd] = FixLgndPos(TBL)
 
