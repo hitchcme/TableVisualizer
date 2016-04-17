@@ -15,6 +15,13 @@ function [VALID,TABLES,INTPATH,RFK] = import_TableRADAR(wholepathfilename)
 	
 	INTPATH = build_INTPATHs();
 	TABLES = load_TABLESmat(INTPATH.TABLES);
+    %build internal paths
+	%INTPATH = build_INTPATHs();
+    %minimizing code space, because this function is in both Table1 and
+    %RADAR importer functions.
+    INTPATH = utils.files.build_INTPATHs(mfilename,mfilename('fullpath'));
+	
+    TABLES = load_TABLESmat(INTPATH.TABLES);
 	saveStructs(INTPATH,TABLES);
 
 	% No input detected
@@ -33,6 +40,7 @@ function [VALID,TABLES,INTPATH,RFK] = import_TableRADAR(wholepathfilename)
 			relPOS = [NaN,NaN,NaN];
 			TABLE1_RDR = table(NaN,NaN);
 			TABLE1_RDR.Properties.VariableNames = {'Time' 'Velocity'};
+            RFK = {'','',''};
 			return
 
         end
@@ -495,8 +503,14 @@ function [INTPATH] = build_INTPATHs(DIRDELIM)
 		%INTPATH.RDRX <- The String to go there
 		RDR_entry = char(strcat(STR(1),STR(2)));
 		%INTPATH.RDRX.IMPACT or INTPATH.RDRX.PUSHER
+        
 		PSHoIMP = char(STR(3));
-		INTPATH.(RDR_entry).(PSHoIMP) = struct('FILE',FILE,'SRCLOG',SRCLOG,'ERRLOG',ERRLOG);
+        %just its in a directory with underscores in its name
+        if strfind(PSHoIMP,'RDR') > 1
+            PSHoIMP = PSHoIMP(strfind(PSHoIMP,'RDR'):size(PSHoIMP,2));
+        end
+        
+        INTPATH.(RDR_entry).(PSHoIMP) = struct('FILE',FILE,'SRCLOG',SRCLOG,'ERRLOG',ERRLOG);
 	end
 	INTPATHPATH = horzcat(DWORKDIR,'INTPATH.mat');
 	save(INTPATHPATH,'INTPATH');
@@ -542,10 +556,14 @@ function [TABLES] = Check_MIDandMPATH(INTPATH,TABLES,MPATH,MISSION_ID)
 	MPATHM = sum(logical(cell2mat([MPATHM(~cellfun('isempty',MPATHM)),0])));
 	MIDM = strfind(STR,'MID');
 	MIDM = sum(logical(cell2mat([MIDM(~cellfun('isempty',MIDM)),0])));
-		
 	if or(~MIDM,~MPATHM)
-		rmdir(horzcat(INTPATH.DATDIR,'RDR*'),'s');
-		TABLES = struct('MPATH',MPATH,'MID',MISSION_ID)
+        try
+            rmdir(horzcat(INTPATH.DATDIR,'RDR*'),'s');
+        catch e
+            '';
+        end
+            TABLES = struct('MPATH',MPATH,'MID',MISSION_ID);
+
 	else
 		MPATHM = [strfind(TABLES.MID,MISSION_ID),0];
 		MIDM = [strfind(TABLES.MPATH,MPATH),0];
