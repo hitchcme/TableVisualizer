@@ -4,7 +4,10 @@ function [VALID,TABLES,INTPATH] = import_Table1(wholepathfilename)
     VALID = 1;
 	
 	% Build internal paths structure
-	INTPATH = build_INTPATHs();
+	%INTPATH = build_INTPATHs();
+    %minimizing code space, because this function is in both Table1 and
+    %RADAR importer functions.
+    INTPATH = utils.files.build_INTPATHs;
 
 	% Load './.tmp/TABLES.mat'.  This function also creates the .mat file
 	% if it doesn't exist
@@ -495,10 +498,14 @@ function [INTPATH] = build_INTPATHs(DIRDELIM)
 		%INTPATH.RDRX <- The String to go there
 		RDR_entry = char(strcat(STR(1),STR(2)));
         
-		PSHoIMP = char(STR(3))
+		PSHoIMP = char(STR(3));
+        % The following doesn't work, unless it's in a directory with
+        % underscores in it's name, soooo.... don't put it in a directory
+        % with underscores.
         %just its in a directory with underscores in its name
-        PSHoIMP = PSHoIMP(strfind(PSHoIMP,'RDR'):size(PSHoIMP,2))
-        
+        %if strfind(PSHoIMP,'RDR') > 1
+        %    PSHoIMP = PSHoIMP(strfind(PSHoIMP,'RDR'):size(PSHoIMP,2));
+        %end
 		INTPATH.(RDR_entry).(PSHoIMP) = struct('FILE',FILE,'SRCLOG',SRCLOG,'ERRLOG',ERRLOG);
 	end
 	INTPATHPATH = horzcat(DWORKDIR,'INTPATH.mat');

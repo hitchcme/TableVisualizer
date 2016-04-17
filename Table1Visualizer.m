@@ -78,7 +78,7 @@ guidata(hObject, handles);
     else
         [VALID,TABLES,INTPATH] =  import_Table1;
     end
-    fclose('all')
+    fclose('all');
     
     if exist(INTPATH.TABLE1.TABLE1,'file') & ~VALID
         [VALID,TABLES,INTPATH] =  import_Table1;
@@ -361,18 +361,18 @@ function ZIplotVT(TABLE,handles,TinT,STYLES,LEGEND,FLINS,ACCSRCS)
 	MxImp.Velocity(2,C_IMPVel_ind);
 	
 	% Percent of Full Scale future/past sides
-	%PoFShs = 7/100;
-	PoFShs = 5/100;
+	PoFShs = 7/100;
+	%PoFShs = 5/100;
 	PoFShsy = 8/100;
-	%PoFSls = 4/100;
-	PoFSls = 8/100;
+	PoFSls = 4/100;
+	%PoFSls = 8/100;
 	PoFSlsx = 3/100;
 	
 	% Full Scale V,T & DT Max to Impact
 	FSV = abs(MxImp.Velocity(2,C_IMPVel_ind) - MxImp.Velocity(1,C_IMPVel_ind));
 	FST = abs(MxImp.Time(2,C_IMPVel_ind) - MxImp.Time(1,C_IMPVel_ind));
 	FSDT = abs(MxImp.DateTime(2,C_IMPVel_ind) - MxImp.DateTime(1,C_IMPVel_ind));
-
+    
 	% Zoom Window Extrema
 	Ymx = MxImp.Velocity(2,C_IMPVel_ind)+(PoFShs*FSV);
 	Ymn = MxImp.Velocity(2,C_IMPVel_ind)-(PoFSls*FSV);
@@ -545,7 +545,7 @@ function Open_RDR_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 	[VALID,TABLES,INTPATH,RFK] = import_TableRADAR;
-    fclose('all')
+    fclose('all');
     try
         RFK = regexprep(regexprep(RFK,'MPACT','mpact'),'USHER','usher');
         Reload_Callback(hObject, eventdata, handles);
@@ -965,7 +965,7 @@ function Reload_Callback(hObject, eventdata, handles)
     else
         [VALID,TABLES,INTPATH] = import_Table1;
     end
-    fclose('all')
+    fclose('all');
 	MISSION_ID = TABLES.MID;
 	TABLE1_BWs = TABLES.TABLE1.BW;
 	TABLE1_FBs = TABLES.TABLE1.FB;
@@ -1438,102 +1438,11 @@ function [h,handles] = ApplyLineStyles_v2(TBL,FLINS,h,handles)
 	
 	plt.TickLength = plt.TickLength * 2;
 
-    %[plt,lgnd] = FixLgndPos(TBL);
-    
-	if	sum([strfind(handles.SaImpZoom.Checked,'on');0]) ||...
-		sum([strfind(handles.SaNoZoom.Checked,'on');0]);
+    [plt,lgnd] = FixLgndPos(TBL);
+    %editing here
+    [plt,lgnd2] = FixLgnd2Pos(TBL,MIVTxtBxStr,MxImp);
 
-		MIVplttxtbx = text(0,0,MIVTxtBxStr,	'Units',	'normalized',...
-										'FontSize',	16,...
-										'FontWeight', 'bold');
-	else
-		MIVplttxtbx = text(0,0,MIVTxtBxStr,	'Units',	'normalized',...
-										'FontSize',	12,...
-										'FontWeight', 'bold');
-	end
-	MIVplttxtbx.FontUnits = 'normalized';
-	MIVPlttxtbx.FontSize = 10 * plt.YLabel.FontSize / 10;
-	%MIVPlttxtbx.Units = 'normalized'
-	MIVTxtBxP = MIVplttxtbx.Extent;
-	%height of box in Axis units
-	H_BAU = MIVTxtBxP(4) * abs(diff(pltylim))/pltpos(4);
-	% and heres the width
-	%W_BAU = MIVTxtBxP(3) * abs(diff(pltxlim))/pltpos(3)
-	% Maybe the width and the height units are only with respect to the
-	% axis object...  Testing.
-	W_BAU = MIVTxtBxP(3) * abs(diff(pltxlim))/1; % Test proves to be correct
 
-	
-	
-	if pltylim(1) > 600
-		%Lower left corner
-		lgnd2yc = pltylim(1)+ (10/100)*diff(pltylim) + H_BAU/2;
-		lgnd2xc = pltxlim(1) + (10/100)*diff(pltxlim);
-	else
-		%Vertically Centered, aligned right
-		lgnd2yc = abs(diff(pltylim))/2 + pltylim(1) - (25/100)*diff(pltylim);
-		lgnd2xc = pltxlim(2)-pltxlim(2)*15/100 - W_BAU;
-	end
-	% This one puts the 2nd legend below the axis
-	%lgnd2yc = pltylim(1)-((MIVTxtBxP(4)*diff(pltylim)/pltpos(4))*0.6);
-	%lgnd2xc = pltxlim(1);
-	set(MIVplttxtbx, 'Units',	'data',...
-					'Position',	[lgnd2xc,lgnd2yc]); %,...
-					%'Interpreter','latex')
-	
-	% Adjust position of secondary legend, if it happens to be overlapping
-	% with Pusher data,  iff the plot is using the whole GUI window
-	lgnd2boxbnds = [ [lgnd2xc, lgnd2yc - (H_BAU/2)];[lgnd2xc + W_BAU,	lgnd2yc + (H_BAU/2)]];
-
-	INTERSECT = sum(sum(TBL.Time >= lgnd2boxbnds(1,1) & TBL.Velocity >= lgnd2boxbnds(1,2) &...
-			TBL.Time <= lgnd2boxbnds(2,1) & TBL.Velocity <= lgnd2boxbnds(2,2)));
-		
-	while	sum(sum(TBL.Time >= lgnd2boxbnds(1,1) & TBL.Velocity >= lgnd2boxbnds(1,2) &...
-                    TBL.Time <= lgnd2boxbnds(2,1) & TBL.Velocity <= lgnd2boxbnds(2,2)));
-                    
-
-		lgnd2x1 = MIVplttxtbx.Position(1) - (W_BAU * 5/100);
-		lgnd2x2 = MIVplttxtbx.Position(1) + W_BAU + (W_BAU * 5/100);
-		
-		lgnd2y1 = MIVplttxtbx.Position(2) - (H_BAU/2) - (H_BAU * 5/100);
-		lgnd2y2 = MIVplttxtbx.Position(2) + (H_BAU/2) + (H_BAU * 5/100);
-		
-		lgnd2xmp = (lgnd2x2 - lgnd2x1) / 2;
-		lgnd2ymp = (lgnd2y2 - lgnd2y1) / 2;
-		
-		lgnd2boxbnds = [ [lgnd2x1, lgnd2y1];[lgnd2x2, lgnd2y2]];
-
-		INTERSECT = TBL.Time >= lgnd2boxbnds(1,1) & TBL.Velocity >= lgnd2boxbnds(1,2) &...
-			TBL.Time <= lgnd2boxbnds(2,1) & TBL.Velocity <= lgnd2boxbnds(2,2);
-		BEFORE = sum(sum(TBL.Time <= lgnd2xmp & INTERSECT));
-		AFTER = sum(sum(TBL.Time >= lgnd2xmp & INTERSECT));
-		if BEFORE > AFTER || plt.YLim(1) < 100
-			MIVplttxtbx.Position(1) = MIVplttxtbx.Position(1) + (max(max(TBL.Time))-min(min(TBL.Time)))/1000;
-			MIVplttxtbx.Position(2) = MIVplttxtbx.Position(2) + (max(max(TBL.Velocity))-min(min(TBL.Velocity)))/10000;
-		else
-			MIVplttxtbx.Position(1) = MIVplttxtbx.Position(1) - (max(max(TBL.Time))-min(min(TBL.Time)))/1000;
-			MIVplttxtbx.Position(2) = MIVplttxtbx.Position(2) - (max(max(TBL.Velocity))-min(min(TBL.Velocity)))/10000;
-		end
-    end
-
-    while lgnd2boxbnds(2,1) > pltxlim(2) - (1/100)*diff(pltxlim)
-        MIVplttxtbx.FontSize = MIVplttxtbx.FontSize * 0.9;
-        %MIVplttxtbx.Position(1) = MIVplttxtbx.Position(1) - (max(max(TBL.Time))-min(min(TBL.Time)))/100000;
-        MIVplttxtbx.Units = 'normalized';
-        MIVTxtBxP = MIVplttxtbx.Extent;
-       	MIVplttxtbx.Units = 'data';
-        H_BAU = MIVTxtBxP(4) * abs(diff(pltylim))/pltpos(4);
-    	W_BAU = MIVTxtBxP(3) * abs(diff(pltxlim))/1;
-        
-        lgnd2x1 = MIVplttxtbx.Position(1) - (W_BAU * 5/100);
-		lgnd2x2 = MIVplttxtbx.Position(1) + W_BAU + (W_BAU * 5/100);
-		lgnd2y1 = MIVplttxtbx.Position(2) + (H_BAU/2) + (H_BAU * 5/100);
-		lgnd2y2 = MIVplttxtbx.Position(2) - (H_BAU/2) - (H_BAU * 5/100);
-        
-		lgnd2boxbnds = [ [lgnd2x1, lgnd2y1];[lgnd2x2, lgnd2y2]];
-        
-	end
-    
 	title(handles.MID_field.String);
 	
 		
@@ -1778,57 +1687,162 @@ function exportimg_Callback(hObject, eventdata, handles)
     catch e
         %'There was a problem, so I saved it here'
         %IMGFILNAM
-        print('-dpng','-r400',IMGFILNAM)
+        print('-dpng','-r400',IMGFILNAM);
     end
     
     
+function [plt,lgnd2] = FixLgnd2Pos(TBL,MIVTxtBxStr,MxImp)
+
+    try
+        MAXVEL = sum(max(MxImp.Velocity))/size(max(MxImp.Velocity),2);
+        IMPVEL = sum(min(MxImp.Velocity))/size(min(MxImp.Velocity),2);
+        MAXVELT = sum(min(MxImp.Time))/size(min(MxImp.Time),2);
+        IMPVELT = sum(max(MxImp.Time))/size(max(MxImp.Time),2);
+    catch e
+        MAXVEL = max(MxImp.Velocity);
+        IMPVEL = min(MxImp.Velocity);
+        MAXVELT = min(MxImp.Time);
+        IMPVELT = max(MxImp.Time);
+    end
+    
+    plt = findall(gca,'type','axes');
+
+    lgnd = legend('show');
+    lgnd.FontUnits = 'points';
+    
+    %initial placement of the secondary legend, based on being zoomed to
+    %impact, and displaying Pusher data or not 
+    
+    DISPPUSH = sum([cell2mat(strfind(strcat(TBL.Function(1,:)),'PUSHER')),0]) > 0;
+    ZOOMED = sum(sum(TBL.Time < plt.XLim(1))) > 0;
+    if ~ZOOMED && DISPPUSH
+        lgnd2 = text(IMPVELT,IMPVEL/2,MIVTxtBxStr,	'Units',        'data',...
+                                    'FontUnits',    'points',...
+                                    'FontSize',     lgnd.FontSize * 0.75,...
+                                    'FontWeight',   'bold');
+        
+    elseif ~ZOOMED && ~DISPPUSH
+        lgnd2 = text(plt.XLim(1) + abs(diff(plt.XLim)*3/100),IMPVEL/2,MIVTxtBxStr,	'Units',        'data',...
+                                    'FontUnits',    'points',...
+                                    'FontSize',     lgnd.FontSize * 0.75,...
+                                    'FontWeight',   'bold');
+    else
+        lgnd2 = text(0,0,MIVTxtBxStr,	'Units',        'normalized',...
+                                    'FontUnits',    'points',...
+                                    'FontSize',     lgnd.FontSize * 0.75,...
+                                    'FontWeight',   'bold');
+        set(lgnd2,'Units','data');
+    
+        % adjust position of secondary legend so its entirely inside the axis
+        % window
+            %it will be half below axis and half above the lower axis window
+            %limit
+        txtbxos = plt.YLim(1) - lgnd2.Extent(2);
+        % 3% of total x & y Limit spans
+        lgnd2.Position(2) = lgnd2.Position(2) + txtbxos + (abs(diff(plt.YLim)) * (3/100));
+        lgnd2.Position(1) = lgnd2.Position(1) + (abs(diff(plt.XLim)) * (3/100));
+    end
+    
+    
+    %What Data points are inside the secondary legend boundaries?
+        % 1.) Where are the boundaries?
+            % lower left; upper right
+            % (1,1) time lower left corner
+            % (1,2) velocity lower left corner
+            % (2,1) time upper right corner
+            % (2,2) velocity upper right corner
+            EXTENT = get(lgnd2,'Extent');
+            lgnd2bxbnds(1,1:2) = EXTENT(1:2);
+            lgnd2bxbnds(2,1:2) = EXTENT(1:2) + EXTENT(3:4);
+
+            % 2.) Now What data is inside that box
+            GTL = TBL.Time >= lgnd2bxbnds(1,1) & TBL.Velocity >= lgnd2bxbnds(1,2);
+            LTR = TBL.Time <= lgnd2bxbnds(2,1) & TBL.Velocity <= lgnd2bxbnds(2,2);
+            INSIDE = GTL & LTR;
+            
+            while sum(sum(INSIDE))>0 && ~ZOOMED
+                lgnd2.Position(1) = lgnd2.Position(1) + abs(diff(plt.XLim))*(1/100);
+                EXTENT = get(lgnd2,'Extent');
+                lgnd2bxbnds(1,1:2) = EXTENT(1:2);
+                lgnd2bxbnds(2,1:2) = EXTENT(1:2) + EXTENT(3:4);
+
+                % 2.) Now What data is inside that box
+                    GTL = TBL.Time >= lgnd2bxbnds(1,1) & TBL.Velocity >= lgnd2bxbnds(1,2);
+                    LTR = TBL.Time <= lgnd2bxbnds(2,1) & TBL.Velocity <= lgnd2bxbnds(2,2);
+                    INSIDE = GTL & LTR;
+            
+            end
+            if ~ZOOMED && ~DISPPUSH
+                % Center the Secondary Legend between Impact Time and Where
+                % it currently is.  There should be a data point just
+                % outside the NW corner
+                MPC = (IMPVELT + lgnd2.Extent(1))/2;
+                LMPC = lgnd2.Extent(1) + (lgnd2.Extent(3)/2);
+                lgnd2.Position(1) = lgnd2.Extent(1) + MPC - LMPC;
+            elseif ~ZOOMED && DISPPUSH
+                MAXTIM = max(max(TBL.Time));
+                MPC = (MAXTIM + IMPVELT)/2;
+                LMPC = lgnd2.Extent(1) + (lgnd2.Extent(3)/2);
+                lgnd2.Position(1) = lgnd2.Extent(1) + MPC - LMPC;
+            end
+            % 3.) What quadrant of secondary legend are those data points
+                %     mostly in?
+            %lgnd2tmp = lgnd2bxbnds(1,1) + (lgnd2bxbnds(2,1) - lgnd2bxbnds(1,1))/2;
+            %lgnd2vmp = lgnd2bxbnds(1,2) + (lgnd2bxbnds(2,2) - lgnd2bxbnds(1,2))/2;
+            %NorthHalf = INSIDE & TBL.Velocity > lgnd2vmp;
+            %EastHalf = INSIDE & TBL.Time > lgnd2tmp;
+            %WestHalf = INSIDE & ~EastHalf;
+            %SouthHalf = INSIDE & ~NorthHalf;
+            %NWQuad = INSIDE & WestHalf & NorthHalf;
+            %NEQuad = INSIDE & EastHalf & NorthHalf;
+            %SEQuad = INSIDE & EastHalf & SouthHalf;
+            %SWQuad = INSIDE & WestHalf & SouthHalf;
+            
+            %E_N = sum([sum(sum(NorthHalf)),0]);
+            %E_NE = sum([sum(sum(NEQuad)),0]);
+            %E_E = sum([sum(sum(EastHalf)),0]);
+            %E_SE = sum([sum(sum(SEQuad)),0]);
+            %E_S = sum([sum(sum(SouthHalf)),0]);
+            %E_SW = sum([sum(sum(SWQuad)),0]);
+            %E_W = sum([sum(sum(WestHalf)),0]);
+            %E_NW = sum([sum(sum(NWQuad)),0]);
+            
+            %E_N = (E_NW + E_NE)/2;
+            %E_E = (E_NE + E_SE)/2;
+            %E_S = (E_SE + E_SW)/2;
+            %E_W = (E_SW + E_NW)/2;
+            
+            %WORSTDIRtMV = [E_N,E_NE,E_E,E_SE,E_S,E_SW,E_W,E_NW]
+            %WDtMvind = find(max(max(WORSTDIRtMV)) == WORSTDIRtMV)
+            %WORSTDIRtMV(WDtMvind)
     
 function [plt,lgnd] = FixLgndPos(TBL)
 
 	plt = findall(gca,'type','axes');
 	lgnd = legend('show');
-	lgnd.Units = 'normalized';
-	pltxlim = plt.XLim;
-	pltylim = plt.YLim;
-	pltxa = diff(plt.XLim)/(plt.Position(3));
-    pltya = diff(plt.YLim)/(plt.Position(4))
-	lgndpos = lgnd.Position;
-
-	lgndbndx1 = plt.XLim(2) - (lgndpos(1)*pltxa)-(0/100)*(lgndpos(1)*pltxa);
-	lgndbndx2 = lgndbndx1 + (lgndpos(3)*abs(diff(pltxlim)));
-
-	lgndbndy1 = plt.YLim(2) - (lgndpos(2)*pltya)-(0/100)*(lgndpos(2)*pltya);
-	lgndbndy2 = lgndbndy1 + (lgndpos(3)*diff(pltylim)) + pltylim(1);
-	lgndbnd = [[lgndbndx1,lgndbndy1];[lgndbndx2,lgndbndy2]];
-	lgndxmp = (lgndbndx2 - lgndbndx1) / 2;
-	lgndymp = (lgndbndy2 - lgndbndy1) / 2;
-    INTERSECT = sum(...
-                sum(...
-                        TBL.Time >= lgndbnd(1,1) & TBL.Velocity >= lgndbnd(1,2) &...
-                        TBL.Time <= lgndbnd(2,1) & TBL.Velocity <= lgndbnd(2,2)))
-
-	while INTERSECT
-		plt.YLim(2) = plt.YLim(2)*1.01;
-		pltxlim = plt.XLim;
-		pltylim = plt.YLim;
-        pltxa = diff(plt.XLim)/(plt.Position(3));
-        pltya = diff(plt.YLim)/(plt.Position(4))
-        lgndpos = lgnd.Position;
-
-        lgndbndx1 = plt.XLim(2) - (lgndpos(1)*pltxa)-(0/100)*(lgndpos(1)*pltxa);
-        lgndbndx2 = lgndbndx1 + (lgndpos(3)*abs(diff(pltxlim)));
-
-        lgndbndy1 = plt.YLim(2) - (lgndpos(2)*pltya)-(0/100)*(lgndpos(2)*pltya);
-        lgndbndy2 = lgndbndy1 + (lgndpos(3)*diff(pltylim)) + pltylim(1);
-        lgndbnd = [[lgndbndx1,lgndbndy1];[lgndbndx2,lgndbndy2]]
-        lgndxmp = (lgndbndx2 - lgndbndx1) / 2;
-        lgndymp = (lgndbndy2 - lgndbndy1) / 2;
-        INTERSECT =  sum(...
-                     sum(...
-                        TBL.Time >= lgndbnd(1,1) & TBL.Velocity >= lgndbnd(1,2) &...
-                        TBL.Time <= lgndbnd(2,1) & TBL.Velocity <= lgndbnd(2,2)));
-        pause
-    end
-
-
     
+    dfb =  (plt.Position(1:2)  +  plt.Position(3:4)) - ...
+           (lgnd.Position(1:2) + lgnd.Position(3:4));
+    
+    %legend buffered position
+    lgndbpos = lgnd.Position(1:2) - dfb;
+    
+    nrmdVel = ((TBL.Velocity - plt.YLim(1)) * plt.Position(4) / diff(plt.YLim)) + plt.Position(2);
+    nrmdTim = ((TBL.Time - plt.XLim(1)) * plt.Position(3) / diff(plt.XLim)) + plt.Position(1);
+    INTERSECT = sum(sum((nrmdVel > lgndbpos(2)) & (nrmdTim > lgndbpos(1)))) > 0;
+    
+    
+    while INTERSECT
+        plt.YLim = plt.YLim * 1.01;
+        %plt.XLim = plt.XLim * 1.001;
+
+        dfb =  (plt.Position(1:2)  +  plt.Position(3:4)) - ...
+              (lgnd.Position(1:2)  + lgnd.Position(3:4));
+    
+        %legend buffered position
+        lgndbpos = lgnd.Position(1:2) - dfb;
+    
+        nrmdVel = ((TBL.Velocity - plt.YLim(1)) * plt.Position(4) / diff(plt.YLim)) + plt.Position(2);
+        nrmdTim = ((TBL.Time - plt.XLim(1)) * plt.Position(3) / diff(plt.XLim)) + plt.Position(1);
+        INTERSECT = sum(sum((nrmdVel > lgndbpos(2)) & (nrmdTim > lgndbpos(1)))) > 0;
+    end
