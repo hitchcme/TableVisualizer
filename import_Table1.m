@@ -7,7 +7,7 @@ function [VALID,TABLES,INTPATH] = import_Table1(wholepathfilename)
 	%INTPATH = build_INTPATHs();
     %minimizing code space, because this function is in both Table1 and
     %RADAR importer functions.
-    INTPATH = utils.files.build_INTPATHs;
+    INTPATH = utils.files.build_INTPATHs(mfilename,mfilename('fullpath'));
 
 	% Load './.tmp/TABLES.mat'.  This function also creates the .mat file
 	% if it doesn't exist

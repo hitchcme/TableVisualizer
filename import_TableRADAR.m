@@ -17,7 +17,7 @@ function [VALID,TABLES,INTPATH,RFK] = import_TableRADAR(wholepathfilename);
 	%INTPATH = build_INTPATHs();
     %minimizing code space, because this function is in both Table1 and
     %RADAR importer functions.
-    INTPATH = utils.files.build_INTPATHs;
+    INTPATH = utils.files.build_INTPATHs(mfilename,mfilename('fullpath'));
 	
     TABLES = load_TABLESmat(INTPATH.TABLES);
 	saveStructs(INTPATH,TABLES);

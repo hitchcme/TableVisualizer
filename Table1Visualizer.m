@@ -909,7 +909,7 @@ function updateTables(handles,INTPATH)
 	
 function updateSources(handles)
 	
-	PATHTOSRCLOG = get_tmpFilePath('Source.log');
+	PATHTOSRCLOG = get_tmpFilePath('Source.log')
 	
 	SRCS = utils.files.getSources(PATHTOSRCLOG);
 	SRCMIs = findall(handles.SOURCES);
