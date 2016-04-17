@@ -22,7 +22,7 @@ function varargout = Table1Visualizer(varargin)
 
 % Edit the above text to modify the response to help Table1Visualizer
 
-% Last Modified by GUIDE v2.5 05-Apr-2016 20:18:21
+% Last Modified by GUIDE v2.5 16-Apr-2016 23:37:13
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -73,8 +73,18 @@ guidata(hObject, handles);
     
 	
 	PATHTOLOCALTABLE1 = get_tmpFilePath('Table 1');
+	if ismember(handles.dnt_fix_stage_vels.Checked,'on')
+		VELFIXSTR = 'Dont Fix STG Vels';
+	elseif ismember(handles.fix_all_stage_vels.Checked,'on')
+		VELFIXSTR = 'Fix All STG Vels';
+	elseif ismember(handles.fix_bad_stage_vels.Checked,'on')
+		VELFIXSTR = 'Fix Bad STG Vels';
+	else
+		VELFIXSTR = 'Fix Bad STG Vels';
+	end
+	
     if exist(PATHTOLOCALTABLE1,'file')
-        [VALID,TABLES,INTPATH] =  import_Table1(PATHTOLOCALTABLE1);
+        [VALID,TABLES,INTPATH] =  import_Table1(PATHTOLOCALTABLE1,VELFIXSTR);
     else
         [VALID,TABLES,INTPATH] =  import_Table1;
     end
@@ -543,45 +553,65 @@ function Open_RDR_Callback(hObject, eventdata, handles)
 % hObject    handle to Open_RDR (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+	
+	INTPATH = utils.files.build_INTPATHs(mfilename,mfilename('fullpath'));
+	load(char(INTPATH.TABLES),'TABLES');
+	STARTPATH = strcat(TABLES.MPATH,'*.asc');
+	
+	[FileName,PathName,FilterIndex] = uigetfile(STARTPATH,'import RADAR.asc file','MultiSelect','on');
+	
+	if isstr(FileName) || iscellstr(FileName)
+		FILEQUANT = size(cellstr(FileName),2);
+	else
+		FILEQUANT = 0;
+	end
+	
+	for i=1:FILEQUANT
+		if FILEQUANT > 1
+			wholepathfilename = char(strcat(PathName,FileName(i)));
+		else
+			wholepathfilename = char(strcat(PathName,FileName));
+		end
+		
+		[VALID,TABLES,INTPATH,RFK] = import_TableRADAR(wholepathfilename);
+		fclose('all');
+		try
+			RFK = regexprep(regexprep(RFK,'MPACT','mpact'),'USHER','usher');
+			Reload_Callback(hObject, eventdata, handles);
+			TBLMIs = findall(handles.Tables_menu);
 
-	[VALID,TABLES,INTPATH,RFK] = import_TableRADAR;
-    fclose('all');
-    try
-        RFK = regexprep(regexprep(RFK,'MPACT','mpact'),'USHER','usher');
-        Reload_Callback(hObject, eventdata, handles);
-        TBLMIs = findall(handles.Tables_menu);
-
-        TMEs1 = handles.Tables_menu.Children;
-        TMEsL1 = {TMEs1.Label};
-        if size(TMEs1,1) > 0
-            TMEsL1 = transpose(TMEsL1);
-        end
-        RMPOS1 = sum(find(ismember(TMEsL1,RFK(1))));
+			TMEs1 = handles.Tables_menu.Children;
+			TMEsL1 = {TMEs1.Label};
+			if size(TMEs1,1) > 0
+				TMEsL1 = transpose(TMEsL1);
+			end
+			RMPOS1 = sum(find(ismember(TMEsL1,RFK(1))));
 	
-        TMEs2 = TMEs1(RMPOS1).Children;
-        TMEsL2 = {TMEs2.Label};
-        if size(TMEs1,1) > 0
-            TMEsL2 = transpose(TMEsL2);
-        end
-        RMPOS2 = sum(find(ismember(TMEsL2,RFK(2))));
+			TMEs2 = TMEs1(RMPOS1).Children;
+			TMEsL2 = {TMEs2.Label};
+			if size(TMEs1,1) > 0
+				TMEsL2 = transpose(TMEsL2);
+			end
+			RMPOS2 = sum(find(ismember(TMEsL2,RFK(2))));
 	
-        TMEs3 = TMEs2(RMPOS2).Children;
-        TMEsL3 = {TMEs3.Label};
-        if size(TMEs2,1) > 0
-            TMEsL3 = transpose(TMEsL3);
-        end
-        RMPOS3 = sum(find(ismember(TMEsL3,RFK(3))));
-        % Turn it off before sending the object to the callback, because it's
-        % going to toggle it.
-        TMEs3(RMPOS3).Checked = 'off';
-        Tables_menu_children_Callback(TMEs3(RMPOS3),eventdata,handles,TABLES);
+			TMEs3 = TMEs2(RMPOS2).Children;
+			TMEsL3 = {TMEs3.Label};
+			if size(TMEs2,1) > 0
+				TMEsL3 = transpose(TMEsL3);
+			end
+			RMPOS3 = sum(find(ismember(TMEsL3,RFK(3))));
+			% Turn it off before sending the object to the callback, because it's
+			% going to toggle it.
+			TMEs3(RMPOS3).Checked = 'off';
+			Tables_menu_children_Callback(TMEs3(RMPOS3),eventdata,handles,TABLES);
 	
-        %updateSources(handles);
-        %updateTables(handles,INTPATH);
-        %Reload_Callback(hObject, eventdata, handles);
-    catch e
-        '';
-    end
+			%updateSources(handles);
+			%updateTables(handles,INTPATH);
+			%Reload_Callback(hObject, eventdata, handles);
+		catch e
+			'';
+		end
+	end
 	
 % --------------------------------------------------------------------
 function Open_Callback(hObject, eventdata, handles)
@@ -961,7 +991,16 @@ function Reload_Callback(hObject, eventdata, handles)
 		% Load from local copy
 		INTPATH.TABLE1.TABLE1;
 		wholepathfilename = INTPATH.TABLE1.TABLE1;
-        [VALID,TABLES,INTPATH] = import_Table1(wholepathfilename);
+		
+		if ismember(handles.dnt_fix_stage_vels.Checked,'on')
+			VELFIXSTR = 'Dont Fix STG Vels';
+		elseif ismember(handles.fix_all_stage_vels.Checked,'on')
+			VELFIXSTR = 'Fix All STG Vels';
+		elseif ismember(handles.fix_bad_stage_vels.Checked,'on')
+			VELFIXSTR = 'Fix Bad STG Vels';
+		end
+		
+        [VALID,TABLES,INTPATH] = import_Table1(wholepathfilename,VELFIXSTR);
     else
         [VALID,TABLES,INTPATH] = import_Table1;
     end
@@ -1846,3 +1885,63 @@ function [plt,lgnd] = FixLgndPos(TBL)
         nrmdTim = ((TBL.Time - plt.XLim(1)) * plt.Position(3) / diff(plt.XLim)) + plt.Position(1);
         INTERSECT = sum(sum((nrmdVel > lgndbpos(2)) & (nrmdTim > lgndbpos(1)))) > 0;
     end
+
+
+% --------------------------------------------------------------------
+function misc_opts_Callback(hObject, eventdata, handles)
+% hObject    handle to misc_opts (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function fix_bad_stage_vels_Callback(hObject, eventdata, handles)
+% hObject    handle to fix_bad_stage_vels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+	if ismember(handles.fix_bad_stage_vels.Checked,'off')
+		handles.fix_bad_stage_vels.Checked = 'on';
+		handles.fix_all_stage_vels.Checked = 'off';
+		handles.dnt_fix_stage_vels.Checked = 'off';
+	else
+		handles.fix_bad_stage_vels.Checked = 'off';
+		handles.fix_all_stage_vels.Checked = 'off';
+		handles.dnt_fix_stage_vels.Checked = 'on';
+	end
+	
+	Reload_Callback(hObject, eventdata, handles);
+
+% --------------------------------------------------------------------
+function fix_all_stage_vels_Callback(hObject, eventdata, handles)
+% hObject    handle to fix_all_stage_vels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+	if ismember(handles.fix_all_stage_vels.Checked,'off')
+		handles.fix_bad_stage_vels.Checked = 'off';
+		handles.fix_all_stage_vels.Checked = 'on';
+		handles.dnt_fix_stage_vels.Checked = 'off';
+	else
+		handles.fix_bad_stage_vels.Checked = 'off';
+		handles.fix_all_stage_vels.Checked = 'off';
+		handles.dnt_fix_stage_vels.Checked = 'on';
+	end
+	
+	Reload_Callback(hObject, eventdata, handles);
+
+% --------------------------------------------------------------------
+function dnt_fix_stage_vels_Callback(hObject, eventdata, handles)
+% hObject    handle to dnt_fix_stage_vels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+	if ismember(handles.dnt_fix_stage_vels.Checked,'off')
+		handles.fix_bad_stage_vels.Checked = 'off';
+		handles.fix_all_stage_vels.Checked = 'off';
+		handles.dnt_fix_stage_vels.Checked = 'on';
+	else
+		handles.fix_bad_stage_vels.Checked = 'off';
+		handles.fix_all_stage_vels.Checked = 'on';
+		handles.dnt_fix_stage_vels.Checked = 'off';
+	end
+	
+	Reload_Callback(hObject, eventdata, handles);
+	

@@ -1,4 +1,14 @@
-function [VALID,TABLES,INTPATH] = import_Table1(wholepathfilename)
+function [VALID,TABLES,INTPATH] = import_Table1(wholepathfilename,VELFIXSTR)
+
+	if nargin == 2 & strfind(VELFIXSTR,'Dont Fix STG Vels')
+		VELFIXMODE = 0;
+	elseif nargin == 2 & strfind(VELFIXSTR,'Fix Bad STG Vels')
+		VELFIXMODE = 1;
+	elseif nargin == 2 & strfind(VELFIXSTR,'Fix All STG Vels')
+		VELFIXMODE = 2;
+	else
+		VELFIXMODE = 2;
+	end
 
     % Every file is innocent until proven guilty!
     VALID = 1;
@@ -15,7 +25,7 @@ function [VALID,TABLES,INTPATH] = import_Table1(wholepathfilename)
 
     if nargin == 0
 	% No input detected
-        [FileName,PathName,FilterIndex] = uigetfile('*.*');
+        [FileName,PathName,FilterIndex] = uigetfile('*.txt','import TABLE 1');
     
         % File was selected, build the path to that file
         if logical(FileName(1) > 0) && logical(PathName(1) > 0) && logical(FilterIndex(1) > 0)
@@ -315,7 +325,11 @@ end
 		SS1 = 'STG';
 		isSTG = le(strfind(SS,SS1),1);
     
-		if BadVel && isSTG && GOODLTS
+		if	isSTG & GOODLTS &...
+			((VELFIXMODE == 1 && BadVel) |...
+			VELFIXMODE == 2)
+		%if isSTG & GOODLTS
+		%if BadVel && isSTG && GOODLTS
 			% interpolate the actual velocity
 			WMATBWTS = table2cell(TABLE1_BWs);
 			WMATFBTS = table2cell(TABLE1_FBs);
@@ -426,90 +440,6 @@ function TABLES = load_TABLESmat(TABLESPATH)
 		TABLES = struct('MPATH','','MID','');
 		save(TABLESPATH,'TABLES')
 	end
-
-
-function [INTPATH] = build_INTPATHs(DIRDELIM)
-
-	if ispc
-		DIRDELIM = '\';
-	else
-		DIRDELIM = '/';
-	end
-
-	THISFILE = mfilename;
-    THISDIR = mfilename('fullpath');
-    THISDIR = THISDIR(1:end-size(THISFILE,2));
-    DWORKDIR = horzcat(THISDIR,'.tmp',DIRDELIM);
-
-	% Key files for import
-	TABLE1 = horzcat(DWORKDIR,'Table 1');
-	DATSTORF = horzcat(DWORKDIR,'TABLES.mat');
-	PATHSTORF = horzcat(DWORKDIR,'INTPATH.mat');
-	PATHSTORF1 = horzcat(DWORKDIR,'MISSION.mat');
-	
-	ERRLOG = horzcat(DWORKDIR,'Error.log');
-	SRCLOG = horzcat(DWORKDIR,'Source.log');
-	
-	% If the Data Work Directory doesn't exist
-    % create it
-	if ~exist(DWORKDIR, 'dir');
-        mkdir(DWORKDIR);
-	end
-
-	if ispc
-		fileattrib(DWORKDIR,'+h');
-		% unnecessary for any *nix operating system
-		% the leading '.' tells the operating system to hide it
-	end
-
-	RDRDIRS = dir(horzcat(DWORKDIR,'RDR*'));
-	RDRDIRS1 = cellstr(char(RDRDIRS.name));
-
-	if size(char(RDRDIRS1(1)),2) > 0
-		RDRFILE = strcat(DWORKDIR,cellstr(char(RDRDIRS.name)),DIRDELIM,RDRDIRS1);
-		RDRSRCLOG = strcat(DWORKDIR,cellstr(char(RDRDIRS.name)),DIRDELIM,'Source.log');
-		RDRERRLOG = strcat(DWORKDIR,cellstr(char(RDRDIRS.name)),DIRDELIM,'Error.log');
-	else
-		RDRFILE = '';
-	end
-	
-	INTPATH = struct('THISDIR',THISDIR);
-	INTPATH.DATDIR = DWORKDIR;
-	INTPATH.TABLES = DATSTORF;
-	INTPATH.MISSION = PATHSTORF1;
-	INTPATH.INTPATH = PATHSTORF;
-	
-	INTPATH.TABLE1 = struct('TABLE1',TABLE1,'SRCLOG',SRCLOG,'ERRLOG',ERRLOG);
-
-	for i=1:size(RDRFILE,1)
-		STR = RDRSRCLOG(i);
-		ERRLOG = RDRERRLOG(i);
-		SRCLOG = RDRSRCLOG(i);
-		FILE = RDRFILE(i);
-		STR = utils.misc.strsplit(char(regexprep(regexprep(regexprep(STR,DWORKDIR,''),'Source.log',''),'[\\\/]','')),'_');
-		if ispc
-            STRwv = char(STR(1));
-            RSPinS = strfind(char(STR(1)),'RDR');
-            STRSIZ = size(char(STR(1)),2);
-            STRwv = STRwv(RSPinS:STRSIZ);
-            STR(1) = cellstr(STRwv);
-        end
-		NEWSTRUCT = struct('FILE',FILE,'SRCLOG',SRCLOG,'ERRLOG',ERRLOG);
-		%INTPATH.RDRX <- The String to go there
-		RDR_entry = char(strcat(STR(1),STR(2)));
-        
-		PSHoIMP = char(STR(3));
-        % The following doesn't work, unless it's in a directory with
-        % underscores in it's name, soooo.... don't put it in a directory
-        % with underscores.
-        %just its in a directory with underscores in its name
-        %if strfind(PSHoIMP,'RDR') > 1
-        %    PSHoIMP = PSHoIMP(strfind(PSHoIMP,'RDR'):size(PSHoIMP,2));
-        %end
-		INTPATH.(RDR_entry).(PSHoIMP) = struct('FILE',FILE,'SRCLOG',SRCLOG,'ERRLOG',ERRLOG);
-	end
-	INTPATHPATH = horzcat(DWORKDIR,'INTPATH.mat');
-	save(INTPATHPATH,'INTPATH');	
 
 
 
