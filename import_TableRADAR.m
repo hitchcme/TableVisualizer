@@ -1,4 +1,4 @@
-function [VALID,TABLES,INTPATH,RFK] = import_TableRADAR(wholepathfilename)
+function [VALID,TABLES,INTPATH,RFK] = import_TableRADAR(wholepathfilename);
 % This function will grab a Table1, if there is no TABLES.TABLE1, and
 % run import_Table1(), after it finds the Mission Path.
 % if TABLES.TABLE1 is made, then TABLES.RADAR{NUM}.TS will be offset by
@@ -13,8 +13,6 @@ function [VALID,TABLES,INTPATH,RFK] = import_TableRADAR(wholepathfilename)
 	% Every file is innocent until proven guilty!
     VALID = 1;
 	
-	INTPATH = build_INTPATHs();
-	TABLES = load_TABLESmat(INTPATH.TABLES);
     %build internal paths
 	%INTPATH = build_INTPATHs();
     %minimizing code space, because this function is in both Table1 and
@@ -498,7 +496,13 @@ function [INTPATH] = build_INTPATHs(DIRDELIM)
 		SRCLOG = RDRSRCLOG(i);
 		FILE = RDRFILE(i);
 		STR = utils.misc.strsplit(char(regexprep(regexprep(regexprep(STR,DWORKDIR,''),'Source.log',''),'[\\\/]','')),'_');
-		
+		if ispc
+            STRwv = char(STR(1));
+            RSPinS = strfind(char(STR(1)),'RDR');
+            STRSIZ = size(char(STR(1)),2);
+            STRwv = STRwv(RSPinS:STRSIZ);
+            STR(1) = cellstr(STRwv);
+        end
 		NEWSTRUCT = struct('FILE',FILE,'SRCLOG',SRCLOG,'ERRLOG',ERRLOG);
 		%INTPATH.RDRX <- The String to go there
 		RDR_entry = char(strcat(STR(1),STR(2)));
@@ -568,7 +572,11 @@ function [TABLES] = Check_MIDandMPATH(INTPATH,TABLES,MPATH,MISSION_ID)
 		MPATHM = [strfind(TABLES.MID,MISSION_ID),0];
 		MIDM = [strfind(TABLES.MPATH,MPATH),0];
 		if or(~MIDM,~MPATHM)
-			rmdir(horzcat(INTPATH.DATDIR,'RDR*'),'s');
+            try 
+                rmdir(horzcat(INTPATH.DATDIR,'RDR*'),'s');
+            catch e
+                '';
+            end
 			TABLES = struct('MPATH',MPATH,'MID',MISSION_ID);
 		end
 	end
@@ -587,15 +595,46 @@ function IsInCorrMissionDir = Check_MID_with_ParentDir(MISSION_ID,wholepathfilen
 	
 	
 function [MPATH, MISSION_ID,RDRNUM,TYPE,MYRDRFILENAME] = GET_RDR_Info(wholepathfilename)
+    
+    % my swEEEET one-liner. Verified working in windows Part.
+    wholepathfilename = regexprep(wholepathfilename,...
+                                                    {   '[rR][dD][rR]',...
+                                                        '[rR][dD][rR] ',...
+                                                        '[rR][dD][rR]  ',...
+                                                        '[rR][dD][rR]   ',...
+                                                        '[rR][dD][rR]_',...
+                                                        '_[rR][dD][rR]',...
+                                                                            },' RDR');
+    
+    % Found one file with 'Article' instead of 'Impact' and everything is
+    % already setup for 'Impact' way toooo many variables are base on this
+    % to just change right now.
+    wholepathfilename = regexprep(wholepathfilename,'[aA][rR][tT][iI][cC][lL][eE]','IMPACT');
+    % I think 'FOR_PROC' may mean Forward ...something...
+    % since there is a 'PUSH_PROC', 'FOR_PROC' must be IMPACT????
+    wholepathfilename = regexprep(regexprep(wholepathfilename,'FOR_PROC','IMPACT'),'_IMPACT','IMPACT');
+    wholepathfilename = regexprep(regexprep(wholepathfilename,'PUSH_PROC','PUSHER'),'_PUSHER','PUSHER');
+    
+    
 	if ispc
-		MRT = utils.misc.strsplit(wholepathfilename,'\');
-		MRT = utils.misc.strsplit(char(regexprep(MRT(size(MRT,2)),'.asc','')),' ');
-	else
-		MRT = utils.misc.strsplit(wholepathfilename,'/');
-		MRT = utils.misc.strsplit(char(regexprep(MRT(size(MRT,2)),'.asc','')),' ');
-	end
+        MRT = utils.misc.strsplit(wholepathfilename,'\\');
+        MRT = utils.misc.strsplit(char(regexprep(MRT(size(MRT,2)),'.asc','')),' ');
+    else
+        MRT = utils.misc.strsplit(wholepathfilename,'/');
+        MRT = utils.misc.strsplit(char(regexprep(MRT(size(MRT,2)),'.asc','')),' ');
+    end
 	MISSION_ID = MRT(1);
 	RDRNUM = str2double(regexprep(regexprep(MRT(2),'[A-Z]',''),'[a-z]',''));
+	IMPCT = logical(sum(cell2mat(strfind(upper(MRT(3)),'IMPACT'))) > 0);
+	PSHER = logical(sum(cell2mat(strfind(upper(MRT(3)),'PUSHER'))) > 0);
+	DMRT3 = ~or(IMPCT,PSHER);
+	while DMRT3
+        MRT(3) = [];
+        IMPCT = logical(sum(cell2mat(strfind(upper(MRT(3)),'IMPACT'))) > 0);
+        PSHER = logical(sum(cell2mat(strfind(upper(MRT(3)),'PUSHER'))) > 0);
+        DMRT3 = ~or(IMPCT,PSHER);
+	end
+    
 	TYPE = upper(MRT(3));
 	WPFN = wholepathfilename;
 	midpos = strfind(char(WPFN),char(MISSION_ID)); % mission path mission id position
