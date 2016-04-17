@@ -13,8 +13,13 @@ function [VALID,TABLES,INTPATH,RFK] = import_TableRADAR(wholepathfilename);
 	% Every file is innocent until proven guilty!
     VALID = 1;
 	
-	INTPATH = build_INTPATHs();
-	TABLES = load_TABLESmat(INTPATH.TABLES);
+    %build internal paths
+	%INTPATH = build_INTPATHs();
+    %minimizing code space, because this function is in both Table1 and
+    %RADAR importer functions.
+    INTPATH = utils.files.build_INTPATHs;
+	
+    TABLES = load_TABLESmat(INTPATH.TABLES);
 	saveStructs(INTPATH,TABLES);
 
 	% No input detected
@@ -501,6 +506,7 @@ function [INTPATH] = build_INTPATHs(DIRDELIM)
 		NEWSTRUCT = struct('FILE',FILE,'SRCLOG',SRCLOG,'ERRLOG',ERRLOG);
 		%INTPATH.RDRX <- The String to go there
 		RDR_entry = char(strcat(STR(1),STR(2)));
+		%INTPATH.RDRX.IMPACT or INTPATH.RDRX.PUSHER
         
 		PSHoIMP = char(STR(3));
         %just its in a directory with underscores in its name
@@ -508,8 +514,7 @@ function [INTPATH] = build_INTPATHs(DIRDELIM)
             PSHoIMP = PSHoIMP(strfind(PSHoIMP,'RDR'):size(PSHoIMP,2));
         end
         
-		INTPATH.(RDR_entry).(PSHoIMP) = struct('FILE',FILE,'SRCLOG',SRCLOG,'ERRLOG',ERRLOG);
-        
+        INTPATH.(RDR_entry).(PSHoIMP) = struct('FILE',FILE,'SRCLOG',SRCLOG,'ERRLOG',ERRLOG);
 	end
 	INTPATHPATH = horzcat(DWORKDIR,'INTPATH.mat');
 	save(INTPATHPATH,'INTPATH');
