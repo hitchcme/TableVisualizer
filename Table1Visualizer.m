@@ -1758,11 +1758,13 @@ function exportimg_Callback(hObject, eventdata, handles)
     
     try
         print('-dpng','-r400',IMGFILNAM2);
+        fclose('all')
 		%print('-depsc2',IMGFILNAM3);
     catch e
         %'There was a problem, so I saved it here'
         %IMGFILNAM
         print('-dpng','-r400',IMGFILNAM);
+        fclose('all')
     end
     
     
