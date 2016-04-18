@@ -1652,14 +1652,14 @@ function	VELS = What_MxImp_Vels(TABLE,ACCSRCS)
 	end
 	
 	% Max Velocity of all sources
-	MAXVELS = max(TABLE.Velocity);
+	MAXVELS = max(TABLE.Velocity)
 	% Supposed times of impact max(t)
-	TOIt = max(TABLE.Time);
-	TOIDt = max(TABLE.DateTime);
+	TOIt = max(TABLE.Time)
+	%TOIDt = max(TABLE.DateTime)
 	
 	for ASCNTF=1:size(SRCCOL,2)
-		MAXVELS_IND(ASCNTF) = transpose(find(ismember(TABLE.Velocity(:,SRCCOL(ASCNTF)),MAXVELS)));
-		IMPVELS_IND(ASCNTF) = transpose(find(ismember(TABLE.Time(:,SRCCOL(ASCNTF)),TOIt)));
+		MAXVELS_IND(ASCNTF) = transpose(find(ismember(TABLE.Velocity(:,SRCCOL(ASCNTF)),MAXVELS)))
+		IMPVELS_IND(ASCNTF) = transpose(find(ismember(TABLE.Time(:,SRCCOL(ASCNTF)),TOIt)))
 	end
 	
 
