@@ -1652,14 +1652,14 @@ function	VELS = What_MxImp_Vels(TABLE,ACCSRCS)
 	end
 	
 	% Max Velocity of all sources
-	MAXVELS = max(TABLE.Velocity)
+	MAXVELS = max(TABLE.Velocity);
 	% Supposed times of impact max(t)
-	TOIt = max(TABLE.Time)
+	TOIt = max(TABLE.Time);
 	%TOIDt = max(TABLE.DateTime)
 	
 	for ASCNTF=1:size(SRCCOL,2)
-		MAXVELS_IND(ASCNTF) = transpose(find(ismember(TABLE.Velocity(:,SRCCOL(ASCNTF)),MAXVELS)))
-		IMPVELS_IND(ASCNTF) = transpose(find(ismember(TABLE.Time(:,SRCCOL(ASCNTF)),TOIt)))
+		MAXVELS_IND(ASCNTF) = transpose(find(ismember(TABLE.Velocity(:,SRCCOL(ASCNTF)),MAXVELS)));
+		IMPVELS_IND(ASCNTF) = transpose(find(ismember(TABLE.Time(:,SRCCOL(ASCNTF)),TOIt)));
 	end
 	
 
@@ -1789,20 +1789,21 @@ function [plt,lgnd2] = FixLgnd2Pos(TBL,MIVTxtBxStr,MxImp)
     
     %initial placement of the secondary legend, based on being zoomed to
     %impact, and displaying Pusher data or not 
-    
+	% Relatively Large Impact Time, with respect to the viewing window
+    RLIT = IMPVELT > (abs(diff(plt.XLim))*(3/4)) + plt.XLim(1);
     DISPPUSH = sum([cell2mat(strfind(strcat(TBL.Function(1,:)),'PUSHER')),0]) > 0;
     ZOOMED = sum(sum(TBL.Time < plt.XLim(1))) > 0;
-    if ~ZOOMED && DISPPUSH
+    if ~ZOOMED && DISPPUSH && ~RLIT
         lgnd2 = text(IMPVELT,IMPVEL/2,MIVTxtBxStr,	'Units',        'data',...
                                     'FontUnits',    'points',...
                                     'FontSize',     lgnd.FontSize * 0.75,...
                                     'FontWeight',   'bold');
-        
-    elseif ~ZOOMED && ~DISPPUSH
+    elseif ~ZOOMED && (~DISPPUSH || RLIT)
         lgnd2 = text(plt.XLim(1) + abs(diff(plt.XLim)*3/100),IMPVEL/2,MIVTxtBxStr,	'Units',        'data',...
                                     'FontUnits',    'points',...
                                     'FontSize',     lgnd.FontSize * 0.75,...
                                     'FontWeight',   'bold');
+		
     else
         lgnd2 = text(0,0,MIVTxtBxStr,	'Units',        'normalized',...
                                     'FontUnits',    'points',...
@@ -1838,7 +1839,8 @@ function [plt,lgnd2] = FixLgnd2Pos(TBL,MIVTxtBxStr,MxImp)
             INSIDE = GTL & LTR;
             
             while sum(sum(INSIDE))>0 && ~ZOOMED
-                lgnd2.Position(1) = lgnd2.Position(1) + abs(diff(plt.XLim))*(1/100);
+				ADDTPOS = abs(diff(plt.XLim))*(1/100);
+                lgnd2.Position(1) = lgnd2.Position(1) + ADDTPOS;
                 EXTENT = get(lgnd2,'Extent');
                 lgnd2bxbnds(1,1:2) = EXTENT(1:2);
                 lgnd2bxbnds(2,1:2) = EXTENT(1:2) + EXTENT(3:4);
@@ -1847,17 +1849,26 @@ function [plt,lgnd2] = FixLgnd2Pos(TBL,MIVTxtBxStr,MxImp)
                 GTL = TBL.Time >= lgnd2bxbnds(1,1) & TBL.Velocity >= lgnd2bxbnds(1,2);
                 LTR = TBL.Time <= lgnd2bxbnds(2,1) & TBL.Velocity <= lgnd2bxbnds(2,2);
                 INSIDE = GTL & LTR;
-            
+				INSIDE_frgt = sum(sum(INSIDE & TBL.Time > lgnd2bxbnds(2,1)-(lgnd2bxbnds(2,1)-lgnd2bxbnds(1,1))/5))>0;
+				INSIDE_flft = sum(sum(INSIDE & TBL.Time < lgnd2bxbnds(1,1)+(lgnd2bxbnds(2,1)-lgnd2bxbnds(1,1))/5))>0;
+				if INSIDE_frgt & INSIDE_flft
+					lgnd2.FontSize = lgnd2.FontSize * 0.999;
+					lgnd2.Position(1) = lgnd2.Position(1) - ADDTPOS/2;
+					lgnd2.Position(2) = lgnd2.Position(2) - abs(diff(plt.YLim))*(1/100);
+				elseif INSIDE_frgt
+					lgnd2.Position(1) = lgnd2.Position(1) - ADDTPOS*2;
+					lgnd2.Position(2) = lgnd2.Position(2) - abs(diff(plt.YLim))*(1/100);
+				end
 			end
 			
-            if ~ZOOMED && ~DISPPUSH
+            if ~ZOOMED && (~DISPPUSH || RLIT)
                 % Center the Secondary Legend between Impact Time and Where
                 % it currently is.  There should be a data point just
                 % outside the NW corner
                 MPC = (IMPVELT + lgnd2.Extent(1))/2;
                 LMPC = lgnd2.Extent(1) + (lgnd2.Extent(3)/2);
                 lgnd2.Position(1) = lgnd2.Extent(1) + MPC - LMPC;
-            elseif ~ZOOMED && DISPPUSH
+            elseif ~ZOOMED && DISPPUSH && ~RLIT
                 MAXTIM = max(max(TBL.Time));
                 MPC = (MAXTIM + IMPVELT)/2;
                 LMPC = lgnd2.Extent(1) + (lgnd2.Extent(3)/2);
